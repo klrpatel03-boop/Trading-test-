@@ -266,10 +266,10 @@ def risk_check(cost: float) -> None:
     print(f"  Open positions: {len(data['positions'])}")
 
     issues = []
-    if cost > total * 0.05:
-        issues.append(f"  WARN: Trade cost ${cost:.2f} exceeds 5% max risk (${total*0.05:.2f})")
-    if (deployed + cost) > total * 0.80:
-        issues.append(f"  WARN: Would push deployment to {(deployed+cost)/total*100:.0f}% (max 80%)")
+    if cost > total * 0.10:
+        issues.append(f"  WARN: Trade cost ${cost:.2f} exceeds 10% max risk (${total*0.10:.2f})")
+    if (deployed + cost) > total * 0.90:
+        issues.append(f"  WARN: Would push deployment to {(deployed+cost)/total*100:.0f}% (max 90%)")
     if len(data["positions"]) >= 4:
         issues.append(f"  WARN: Already have {len(data['positions'])} open positions (max 4)")
     if cost > data["cash"]:

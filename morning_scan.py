@@ -34,8 +34,8 @@ DTE_PREFS = {
 }
 
 MAX_IDEAS = 5
-MAX_RISK_PCT = 0.05
-MAX_DEPLOY_PCT = 0.80
+MAX_RISK_PCT = 0.10
+MAX_DEPLOY_PCT = 0.90
 MAX_POSITIONS = 4
 
 
@@ -810,6 +810,9 @@ def run_scan(tickers: list[str] | None = None, account_override: float | None = 
         sec_rank = sector_lookup.get(sec_etf)
         setups = detect_all(t, a, account["cash"], rs, sec_rank)
         for s in setups:
+            # Skip low-conviction oversold bounces — backtest shows they lose money
+            if s["setup"] == "oversold_bounce" and s["score"] < 70:
+                continue
             raw_ideas.append({"setup_data": s, "analysis": a})
 
     print(f"  Found {len(raw_ideas)} setups passing multi-factor filter.\n")

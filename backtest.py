@@ -29,32 +29,32 @@ import sector_analysis
 
 # --- Config --- #
 
-MAX_RISK_PCT = 0.05
+MAX_RISK_PCT = 0.10
 STARTING_CAPITAL = 1200.00
 MAX_POSITIONS = 4
-MAX_DEPLOY_PCT = 0.80
+MAX_DEPLOY_PCT = 0.90
 LOOKBACK_BARS = 60  # need 60 bars of history before first signal
 
 # Trade management rules (matching STRATEGY.md)
 RULES = {
     "bull_call_spread": {
-        "hold_days": (3, 15),       # min/max hold
-        "stop_pct": -0.40,          # close at 40% loss of debit
-        "target_pct": 1.00,         # close at 100% gain
-        "delta": 0.50,              # spread delta approximation
-        "spread_width_pct": 0.03,   # ~3% OTM for short leg
+        "hold_days": (3, 15),
+        "stop_pct": -0.40,          # 40% stop — proven level
+        "target_pct": 1.20,         # 120% gain — slightly higher target
+        "delta": 0.50,
+        "spread_width_pct": 0.03,
     },
     "long_call": {
         "hold_days": (3, 20),
-        "stop_pct": -0.50,
-        "target_pct": 1.00,
+        "stop_pct": -0.50,          # 50% stop
+        "target_pct": 1.50,         # 150% gain target — let calls run
         "delta": 0.55,
         "spread_width_pct": None,
     },
     "cash_secured_put": {
         "hold_days": (5, 30),
-        "stop_pct": -1.00,          # accept assignment risk
-        "target_pct": 0.50,         # close at 50% of max credit
+        "stop_pct": -1.00,
+        "target_pct": 0.50,
         "delta": -0.30,
         "spread_width_pct": None,
     },
@@ -257,7 +257,16 @@ def run_backtest(tickers: list[str], months: int = 12,
             open_positions.remove(pos)
 
         # --- Scan for new setups ---
-        if len(open_positions) < MAX_POSITIONS and cash > capital * (1 - MAX_DEPLOY_PCT):
+        # Market regime: skip new entries when SPY is overbought (RSI > 72)
+        spy_overbought = False
+        if spy_df is not None and bar_idx < len(spy_df):
+            try:
+                spy_rsi = indicators.rsi(spy_df["Close"].iloc[:bar_idx+1]).iloc[-1]
+                spy_overbought = not np.isnan(spy_rsi) and spy_rsi > 72
+            except Exception:
+                pass
+
+        if not spy_overbought and len(open_positions) < MAX_POSITIONS and cash > capital * (1 - MAX_DEPLOY_PCT):
             for t in scan_tickers:
                 if len(open_positions) >= MAX_POSITIONS:
                     break
@@ -270,11 +279,17 @@ def run_backtest(tickers: list[str], months: int = 12,
                 for s in setups:
                     if len(open_positions) >= MAX_POSITIONS:
                         break
+                    # Skip low-conviction oversold bounces
+                    if s["setup"] == "oversold_bounce" and s["score"] < 70:
+                        continue
 
-                    # Size the trade
-                    risk_budget = capital * MAX_RISK_PCT
-                    cost = min(risk_budget, cash * 0.25)
-                    cost = round(max(cost, 30), 2)  # minimum $30 trade
+                    # Scale position size by conviction
+                    if s["score"] >= 75:
+                        risk_budget = capital * 0.15  # 15% on high-conviction
+                    else:
+                        risk_budget = capital * MAX_RISK_PCT  # 10% standard
+                    cost = min(risk_budget, cash * 0.40)
+                    cost = round(max(cost, 50), 2)
 
                     if cost > cash:
                         continue

@@ -37,7 +37,7 @@ This is NOT a buy-and-hold portfolio. This is an **active swing trading account*
 | Holding Period      | 2-15 days (swing trades)       |
 | Trades Per Week     | 2-5 setups                     |
 | Win Rate Target     | 55-65%                         |
-| Risk Per Trade      | 3-5% of account ($36-$60)      |
+| Risk Per Trade      | 10% of account ($120)           |
 | Profit Target       | 2:1 reward-to-risk minimum     |
 | Max Open Positions  | 3-4 at any time                |
 | Max Capital Deployed| 80% (always keep 20% cash)     |
@@ -157,7 +157,7 @@ Sell spreads to collect premium when you expect a stock to stay above (bull put 
 **Execution:**
 - Buy ATM or slightly ITM call, 30-45 DTE
 - Or bull call spread if premium is expensive
-- Risk: 3-5% of account
+- Risk: up to 10% of account
 - Target: 50-100% gain on the option
 - Stop: close if stock breaks below support
 
@@ -258,8 +258,8 @@ Sell spreads to collect premium when you expect a stock to stay above (bull put 
 
 | Rule                              | Limit                      |
 |-----------------------------------|----------------------------|
-| Max risk per trade                | 5% of account ($60)        |
-| Max capital in a single position  | 15% of account ($180)      |
+| Max risk per trade                | 10% of account ($120)      |
+| Max capital in a single position  | 25% of account ($300)      |
 | Max total capital deployed        | 80% of account ($960)      |
 | Min cash reserve                  | 20% of account ($240)      |
 | Max open positions                | 4 at any time              |
