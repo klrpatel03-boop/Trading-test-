@@ -31,28 +31,39 @@ import sector_analysis
 
 MAX_RISK_PCT = 0.10
 STARTING_CAPITAL = 1200.00
-MAX_POSITIONS = 4
+MAX_POSITIONS = 3              # fewer positions, bigger conviction
 MAX_DEPLOY_PCT = 0.90
-LOOKBACK_BARS = 60  # need 60 bars of history before first signal
+LOOKBACK_BARS = 60
 
-# Trade management rules (matching STRATEGY.md)
+# High-beta tickers that actually swing 5-10%+ in a week
+HIGH_BETA = {"TSLA", "NVDA", "AMD", "COIN", "MARA", "SHOP", "SOFI",
+             "PLTR", "ROKU", "CRWD", "ARKK", "META", "AMZN"}
+
+# Trade rules — long calls, swing for 30-50% gains
 RULES = {
+    "long_call": {
+        "hold_days": (2, 10),       # swing = 2-10 days
+        "stop_pct": -0.35,          # cut at 35% loss
+        "target_pct": 0.40,         # take profits at 40% gain
+        "delta": 0.60,              # ATM/slightly ITM calls
+        "spread_width_pct": None,
+    },
+    "long_put": {
+        "hold_days": (2, 10),
+        "stop_pct": -0.35,
+        "target_pct": 0.40,
+        "delta": 0.60,
+        "spread_width_pct": None,
+    },
     "bull_call_spread": {
-        "hold_days": (3, 15),
-        "stop_pct": -0.40,          # 40% stop — proven level
-        "target_pct": 1.20,         # 120% gain — slightly higher target
+        "hold_days": (2, 10),
+        "stop_pct": -0.35,
+        "target_pct": 0.40,
         "delta": 0.50,
         "spread_width_pct": 0.03,
     },
-    "long_call": {
-        "hold_days": (3, 20),
-        "stop_pct": -0.50,          # 50% stop
-        "target_pct": 1.50,         # 150% gain target — let calls run
-        "delta": 0.55,
-        "spread_width_pct": None,
-    },
     "cash_secured_put": {
-        "hold_days": (5, 30),
+        "hold_days": (5, 21),
         "stop_pct": -1.00,
         "target_pct": 0.50,
         "delta": -0.30,
@@ -63,42 +74,47 @@ RULES = {
 
 # --- Simulate option P/L from stock move --- #
 
-def estimate_spread_pnl(stock_move_pct: float, strategy: str, days_held: int,
+def estimate_option_pnl(stock_move_pct: float, strategy: str, days_held: int,
                         dte_at_entry: int = 30) -> float:
     """
-    Estimate option spread P/L as a percentage of debit paid.
-    Uses delta approximation + time decay estimate.
+    Estimate option P/L as % of premium paid.
 
-    For bull call spread:
-      - Gains when stock goes up (delta ~0.50 on net spread)
-      - Time decay hurts but less than naked long
-      - Max gain = (spread_width / debit) - 1
+    Model based on real ATM option behavior:
+      ATM call costs ~3.5-5% of stock price for 30 DTE.
+      Delta 0.55: a 5% stock move = 0.55*5% of stock = 2.75% of stock.
+      On a 4% premium, that's 2.75/4 = +69% of premium from delta.
+      Gamma adds ~10-20% more on larger moves.
+      Theta costs ~2.5% of premium per day for 30 DTE ATM.
+
+    So: 5% stock move over 5 days = +69% delta + 10% gamma - 12.5% theta = ~+66%
+        3% stock move over 8 days = +41% delta + 3% gamma - 20% theta = ~+24%
+       -5% stock move over 5 days = -69% delta - 12.5% theta = ~-81%
     """
-    rules = RULES.get(strategy, RULES["bull_call_spread"])
+    rules = RULES.get(strategy, RULES["long_call"])
     delta = rules["delta"]
+    premium_as_pct = 0.04  # ATM option costs ~4% of stock price
 
-    # Rough P/L from delta * stock_move
-    # For a spread costing ~40% of width, a 3% stock move with 0.50 delta
-    # gives roughly 0.50 * 3% / 0.40 = 3.75% of the spread width
-    # which is ~9.4% return on debit
-    intrinsic_pnl = delta * stock_move_pct / 0.40  # normalized to debit
+    # Theta: 2-3% of premium per day for 21-30 DTE options
+    theta_daily_pct = 0.025 if dte_at_entry > 21 else 0.04
+    theta_total = theta_daily_pct * days_held  # as fraction of premium
 
-    # Theta decay estimate: lose ~2-3% of value per day for 30 DTE options
-    theta_per_day = 0.025 if dte_at_entry > 21 else 0.04
-    theta_cost = theta_per_day * days_held
-
-    # Net estimated P/L as % of premium/debit paid
-    if strategy == "bull_call_spread":
-        # Spreads have less theta exposure
-        net_pnl = intrinsic_pnl * 1.8 - theta_cost * 0.5
-    elif strategy == "long_call":
-        # Naked longs have full theta but more delta
-        net_pnl = intrinsic_pnl * 2.5 - theta_cost
+    if strategy in ("long_call", "long_put"):
+        move = stock_move_pct if strategy == "long_call" else -stock_move_pct
+        # Delta P/L as % of premium
+        delta_pnl = (delta * move / 100) / premium_as_pct * 100
+        # Gamma kicker: bigger moves get disproportionately more
+        gamma_pnl = (abs(move) / 100) ** 2 / premium_as_pct * 30
+        if move < 0:
+            gamma_pnl = -gamma_pnl * 0.3  # gamma helps less on losses
+        net_pnl = delta_pnl + gamma_pnl - theta_total * 100
+    elif strategy == "bull_call_spread":
+        delta_pnl = (delta * stock_move_pct / 100) / premium_as_pct * 70
+        net_pnl = delta_pnl - theta_total * 40  # spreads have less theta
     elif strategy == "cash_secured_put":
-        # CSP profits from time decay when stock stays up
-        net_pnl = -intrinsic_pnl * 0.8 + theta_cost * 0.7
+        delta_pnl = -(delta * stock_move_pct / 100) / premium_as_pct * 60
+        net_pnl = delta_pnl + theta_total * 60  # theta helps CSPs
     else:
-        net_pnl = intrinsic_pnl - theta_cost
+        net_pnl = (delta * stock_move_pct / 100) / premium_as_pct * 80 - theta_total * 100
 
     return net_pnl
 
@@ -205,7 +221,7 @@ def run_backtest(tickers: list[str], months: int = 12,
             stock_move_pct = (current_price - entry_price) / entry_price * 100
 
             # Estimate current option P/L
-            option_pnl_pct = estimate_spread_pnl(
+            option_pnl_pct = estimate_option_pnl(
                 stock_move_pct, pos["strategy"], days_held)
 
             rules = RULES[pos["strategy"]]
@@ -267,7 +283,10 @@ def run_backtest(tickers: list[str], months: int = 12,
                 pass
 
         if not spy_overbought and len(open_positions) < MAX_POSITIONS and cash > capital * (1 - MAX_DEPLOY_PCT):
-            for t in scan_tickers:
+            # Prioritize high-beta stocks that actually swing
+            ordered = [t for t in scan_tickers if t in HIGH_BETA] + \
+                      [t for t in scan_tickers if t not in HIGH_BETA]
+            for t in ordered:
                 if len(open_positions) >= MAX_POSITIONS:
                     break
                 if any(p["ticker"] == t for p in open_positions):
@@ -275,12 +294,17 @@ def run_backtest(tickers: list[str], months: int = 12,
                 if t not in data or bar_idx >= len(data[t]):
                     continue
 
+                # Only trade stocks that actually swing hard enough
+                if t not in HIGH_BETA:
+                    continue
+
                 setups = detect_setups_at_bar(t, data[t], bar_idx, spy_df, cash)
                 for s in setups:
                     if len(open_positions) >= MAX_POSITIONS:
                         break
-                    # Skip low-conviction oversold bounces
                     if s["setup"] == "oversold_bounce" and s["score"] < 70:
+                        continue
+                    if s["score"] < 60:
                         continue
 
                     # Scale position size by conviction
@@ -335,7 +359,7 @@ def run_backtest(tickers: list[str], months: int = 12,
             entry_price = pos["entry_stock_price"]
             stock_move = (last_price - entry_price) / entry_price * 100
             days = num_bars - 1 - pos["entry_bar"]
-            pnl_pct = estimate_spread_pnl(stock_move, pos["strategy"], days)
+            pnl_pct = estimate_option_pnl(stock_move, pos["strategy"], days)
             pnl_dollars = round(pos["cost"] * pnl_pct / 100, 2)
             pnl_dollars = max(pnl_dollars, -pos["cost"])
             cash += pos["cost"] + pnl_dollars

@@ -208,7 +208,7 @@ def detect_breakout(ticker: str, a: dict, rs: dict | None, sector_rank: dict | N
         "score": score,
         "detail": _build_thesis(factors),
         "direction": "bullish",
-        "strategy": "bull_call_spread",
+        "strategy": "long_call",
     }
 
 
@@ -309,7 +309,7 @@ def detect_oversold_bounce(ticker: str, a: dict, rs: dict | None, sector_rank: d
         "score": score,
         "detail": _build_thesis(factors),
         "direction": "bullish",
-        "strategy": "bull_call_spread",
+        "strategy": "long_call",
     }
 
 
