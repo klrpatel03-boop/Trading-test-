@@ -229,7 +229,7 @@ Sell spreads to collect premium when you expect a stock to stay above (bull put 
 | Ticker | Sector       | Why It's Good for Options Swings              |
 |--------|-------------|-----------------------------------------------|
 | COIN   | Crypto/Fintech | Extreme volatility, crypto-correlated swings |
-| SQ     | Fintech     | Volatile, follows market sentiment |
+| XYZ    | Fintech     | Volatile, follows market sentiment |
 | SHOP   | E-commerce  | Big moves on earnings and macro |
 | ROKU   | Streaming   | High beta, large earnings moves |
 | MARA   | Crypto Mining | Extreme volatility, cheap options |

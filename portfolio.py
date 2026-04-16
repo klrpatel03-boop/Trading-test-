@@ -224,6 +224,22 @@ def show_snapshots() -> None:
     print(f"{'='*60}\n")
 
 
+def get_account_state() -> dict:
+    """Return current account state for external consumers (e.g., morning_scan)."""
+    data = _load()
+    deployed = sum(p["cost"] for p in data["positions"])
+    total = data["cash"] + deployed
+    return {
+        "cash": data["cash"],
+        "deployed": deployed,
+        "total": total,
+        "open_positions": data["positions"],
+        "num_open": len(data["positions"]),
+        "open_tickers": [p.get("ticker", "") for p in data["positions"]],
+        "utilization_pct": round((deployed / total * 100), 1) if total > 0 else 0,
+    }
+
+
 def reset_account(starting_cash: float = STARTING_CAPITAL) -> None:
     """Reset the portfolio to starting state."""
     _save({

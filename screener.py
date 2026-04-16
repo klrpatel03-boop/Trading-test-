@@ -106,8 +106,8 @@ WATCHLIST = [
         "why": "Extreme volatility correlated with crypto. Massive earnings moves. Size small.",
     },
     {
-        "ticker": "SQ",
-        "name": "Block Inc.",
+        "ticker": "XYZ",
+        "name": "Block Inc. (fka Square)",
         "tier": 2,
         "sector": "Fintech",
         "avg_weekly_range": "5-8%",
@@ -248,6 +248,30 @@ WATCHLIST = [
         "why": "High beta speculative tech basket. Cheap premiums. Good for aggressive directional bets.",
     },
 ]
+
+
+# ---------- Watchlist Access Helpers ---------- #
+
+def get_tickers(tier: int = 0) -> list[str]:
+    """Return list of ticker symbols, optionally filtered by tier."""
+    items = WATCHLIST if tier == 0 else [w for w in WATCHLIST if w["tier"] == tier]
+    return [w["ticker"] for w in items]
+
+
+def get_watchlist_entry(ticker: str) -> dict | None:
+    """Return the watchlist dict for a given ticker."""
+    for w in WATCHLIST:
+        if w["ticker"].upper() == ticker.upper():
+            return w
+    return None
+
+
+def get_sector_map() -> dict[str, list[str]]:
+    """Return {sector: [tickers]} mapping."""
+    sectors: dict[str, list[str]] = {}
+    for w in WATCHLIST:
+        sectors.setdefault(w["sector"], []).append(w["ticker"])
+    return sectors
 
 
 # ---------- Setup Checklists ---------- #
