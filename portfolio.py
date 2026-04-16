@@ -1,312 +1,346 @@
 #!/usr/bin/env python3
 """
-Portfolio Tracker for $1,200 Rollover IRA at Fidelity
-
-Core-satellite approach:
-  - CORE (75%): Broad market index ETFs
-  - SATELLITE (25%): Sector ETFs and tactical positions
-
-Uses only the Python standard library -- no external dependencies required.
+Options swing trading portfolio tracker for a $1,200 Rollover IRA.
+Tracks positions, P/L, cash balance, and account value over time.
+No external dependencies — uses only the Python standard library.
 """
 
 import json
-import os
-from datetime import datetime, date
-from typing import Optional
+import sys
+from datetime import date
+from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Portfolio definition
-# ---------------------------------------------------------------------------
-
-ACCOUNT_BALANCE = 1200.00
-
-TARGET_ALLOCATIONS = {
-    # CORE holdings (75%)
-    "VOO":  {"pct": 0.35, "category": "core",      "name": "Vanguard S&P 500 ETF"},
-    "VXF":  {"pct": 0.10, "category": "core",      "name": "Vanguard Extended Market ETF"},
-    "SCHD": {"pct": 0.10, "category": "core",      "name": "Schwab US Dividend Equity ETF"},
-    "VXUS": {"pct": 0.15, "category": "core",      "name": "Vanguard Total International ETF"},
-    "SCHE": {"pct": 0.05, "category": "core",      "name": "Schwab Emerging Markets Equity ETF"},
-    # SATELLITE holdings (25%)
-    "XLK":  {"pct": 0.10, "category": "satellite",  "name": "Technology Select Sector SPDR"},
-    "XLV":  {"pct": 0.05, "category": "satellite",  "name": "Health Care Select Sector SPDR"},
-    "SOXX": {"pct": 0.05, "category": "satellite",  "name": "iShares Semiconductor ETF"},
-    "CASH": {"pct": 0.05, "category": "satellite",  "name": "Cash Reserve"},
-}
-
-# File where we persist position snapshots
-DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "portfolio_data.json")
-
-# Risk-management thresholds
-REBALANCE_THRESHOLD = 0.05      # 5 percentage points drift triggers rebalance
-SATELLITE_STOP_LOSS = -0.15     # -15% per satellite position
-PORTFOLIO_DRAWDOWN_WARNING = -0.10
-PORTFOLIO_DRAWDOWN_DEFENSIVE = -0.20
+DATA_FILE = Path(__file__).parent / "portfolio_data.json"
+STARTING_CAPITAL = 1200.00
 
 
-# ---------------------------------------------------------------------------
-# Target allocation helpers
-# ---------------------------------------------------------------------------
-
-def target_dollars(ticker: str, balance: float = ACCOUNT_BALANCE) -> float:
-    """Return the dollar amount a ticker should hold at target weight."""
-    info = TARGET_ALLOCATIONS.get(ticker)
-    if info is None:
-        raise ValueError(f"Unknown ticker: {ticker}")
-    return round(balance * info["pct"], 2)
-
-
-def print_target_allocations(balance: float = ACCOUNT_BALANCE) -> None:
-    """Print a table of target allocations and dollar amounts."""
-    print(f"\n{'='*72}")
-    print(f"  Target Allocations  --  Account Balance: ${balance:,.2f}")
-    print(f"{'='*72}")
-    print(f"  {'Ticker':<8} {'Name':<38} {'Pct':>5}  {'Amount':>9}")
-    print(f"  {'-'*8} {'-'*38} {'-'*5}  {'-'*9}")
-
-    core_total = 0.0
-    sat_total = 0.0
-
-    for ticker, info in TARGET_ALLOCATIONS.items():
-        amt = target_dollars(ticker, balance)
-        pct_str = f"{info['pct']*100:.0f}%"
-        print(f"  {ticker:<8} {info['name']:<38} {pct_str:>5}  ${amt:>8,.2f}")
-        if info["category"] == "core":
-            core_total += amt
-        else:
-            sat_total += amt
-
-    print(f"  {'-'*8} {'-'*38} {'-'*5}  {'-'*9}")
-    print(f"  {'CORE total':<47} {'':>5}  ${core_total:>8,.2f}")
-    print(f"  {'SATELLITE total':<47} {'':>5}  ${sat_total:>8,.2f}")
-    print(f"  {'GRAND TOTAL':<47} {'':>5}  ${core_total + sat_total:>8,.2f}")
-    print()
-
-
-# ---------------------------------------------------------------------------
-# Position tracking
-# ---------------------------------------------------------------------------
-
-def _load_data() -> dict:
-    """Load persisted portfolio data from disk."""
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
+def _load() -> dict:
+    if DATA_FILE.exists():
+        with open(DATA_FILE) as f:
             return json.load(f)
-    return {"snapshots": [], "positions": {}}
-
-
-def _save_data(data: dict) -> None:
-    """Save portfolio data to disk."""
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-
-def update_position(ticker: str, shares: float, price: float) -> None:
-    """Record or update a position with current share count and price."""
-    data = _load_data()
-    positions = data.setdefault("positions", {})
-    positions[ticker] = {
-        "shares": shares,
-        "price": price,
-        "market_value": round(shares * price, 2),
-        "updated": datetime.now().isoformat(),
+    return {
+        "cash": STARTING_CAPITAL,
+        "positions": [],
+        "closed": [],
+        "snapshots": [],
     }
-    _save_data(data)
-    print(f"  Updated {ticker}: {shares} shares @ ${price:.2f} = ${shares * price:,.2f}")
 
 
-def get_positions() -> dict:
-    """Return the current positions dict."""
-    return _load_data().get("positions", {})
+def _save(data: dict) -> None:
+    with open(DATA_FILE, "w") as f:
+        json.dump(data, f, indent=2, default=str)
 
 
-def print_positions() -> None:
-    """Pretty-print current positions and compare to targets."""
-    positions = get_positions()
+# ---------- Position Management ---------- #
+
+def open_position(ticker: str, strategy: str, contracts: int,
+                  entry_price: float, max_risk: float, target: float,
+                  expiration: str, notes: str = "") -> None:
+    """Open a new options position."""
+    data = _load()
+    cost = entry_price * contracts * 100  # options priced per share, 100 shares/contract
+    if cost > data["cash"]:
+        print(f"ERROR: Insufficient cash. Need ${cost:.2f}, have ${data['cash']:.2f}")
+        return
+
+    position = {
+        "id": len(data["positions"]) + len(data["closed"]) + 1,
+        "ticker": ticker,
+        "strategy": strategy,
+        "contracts": contracts,
+        "entry_price": entry_price,
+        "entry_date": date.today().isoformat(),
+        "cost": round(cost, 2),
+        "max_risk": round(max_risk, 2),
+        "target": round(target, 2),
+        "expiration": expiration,
+        "notes": notes,
+        "status": "open",
+    }
+
+    data["cash"] = round(data["cash"] - cost, 2)
+    data["positions"].append(position)
+    _save(data)
+
+    print(f"\nOpened: {strategy} on {ticker}")
+    print(f"  Contracts: {contracts} @ ${entry_price:.2f} = ${cost:.2f}")
+    print(f"  Max risk: ${max_risk:.2f} | Target: ${target:.2f}")
+    print(f"  Expiration: {expiration}")
+    print(f"  Remaining cash: ${data['cash']:.2f}\n")
+
+
+def close_position(position_id: int, exit_price: float, reason: str = "") -> None:
+    """Close an existing position and realize P/L."""
+    data = _load()
+
+    pos = None
+    pos_idx = None
+    for i, p in enumerate(data["positions"]):
+        if p["id"] == position_id:
+            pos = p
+            pos_idx = i
+            break
+
+    if pos is None:
+        print(f"ERROR: Position #{position_id} not found.")
+        return
+
+    proceeds = exit_price * pos["contracts"] * 100
+    pnl = round(proceeds - pos["cost"], 2)
+    pnl_pct = round((pnl / pos["cost"]) * 100, 2) if pos["cost"] > 0 else 0
+
+    closed_pos = {
+        **pos,
+        "exit_price": exit_price,
+        "exit_date": date.today().isoformat(),
+        "proceeds": round(proceeds, 2),
+        "pnl": pnl,
+        "pnl_pct": pnl_pct,
+        "reason": reason,
+        "status": "closed",
+    }
+
+    data["positions"].pop(pos_idx)
+    data["closed"].append(closed_pos)
+    data["cash"] = round(data["cash"] + proceeds, 2)
+    _save(data)
+
+    sym = "+" if pnl >= 0 else ""
+    print(f"\nClosed: {pos['strategy']} on {pos['ticker']}")
+    print(f"  Entry: ${pos['entry_price']:.2f} -> Exit: ${exit_price:.2f}")
+    print(f"  P/L: {sym}${pnl:.2f} ({sym}{pnl_pct:.1f}%)")
+    print(f"  Reason: {reason}")
+    print(f"  Cash balance: ${data['cash']:.2f}\n")
+
+
+def show_positions() -> None:
+    """Display all open positions."""
+    data = _load()
+    positions = data["positions"]
+
+    print(f"\n{'='*80}")
+    print(f" Open Positions  |  Cash: ${data['cash']:.2f}")
+    print(f"{'='*80}")
+
     if not positions:
-        print("\n  No positions recorded yet. Use update_position() to add holdings.\n")
+        print("  No open positions.\n")
         return
 
-    total_value = sum(p["market_value"] for p in positions.values())
-    print(f"\n{'='*78}")
-    print(f"  Current Positions  --  Portfolio Value: ${total_value:,.2f}")
-    print(f"{'='*78}")
-    print(f"  {'Ticker':<8} {'Shares':>8} {'Price':>9} {'Value':>10} {'Actual%':>8} {'Target%':>8} {'Drift':>7}")
-    print(f"  {'-'*8} {'-'*8} {'-'*9} {'-'*10} {'-'*8} {'-'*8} {'-'*7}")
+    total_deployed = 0
+    print(f" {'ID':<4} {'Ticker':<7} {'Strategy':<20} {'Qty':<4} {'Entry':>8} {'Cost':>9} {'Exp':<12}")
+    print(f" {'-'*4} {'-'*7} {'-'*20} {'-'*4} {'-'*8} {'-'*9} {'-'*12}")
+    for p in positions:
+        total_deployed += p["cost"]
+        print(f" {p['id']:<4} {p['ticker']:<7} {p['strategy']:<20} {p['contracts']:<4} "
+              f"${p['entry_price']:>6.2f} ${p['cost']:>7.2f} {p['expiration']:<12}")
 
-    for ticker, pos in sorted(positions.items()):
-        actual_pct = pos["market_value"] / total_value if total_value else 0
-        target_info = TARGET_ALLOCATIONS.get(ticker, {})
-        target_pct = target_info.get("pct", 0)
-        drift = actual_pct - target_pct
-        drift_flag = " *" if abs(drift) >= REBALANCE_THRESHOLD else ""
-        print(
-            f"  {ticker:<8} {pos['shares']:>8.4f} ${pos['price']:>8.2f} "
-            f"${pos['market_value']:>9,.2f} {actual_pct*100:>7.1f}% {target_pct*100:>7.1f}% "
-            f"{drift*100:>+6.1f}%{drift_flag}"
-        )
-
-    print(f"\n  * = drift exceeds {REBALANCE_THRESHOLD*100:.0f}% threshold; rebalancing recommended\n")
+    total_value = data["cash"] + total_deployed
+    pct_deployed = (total_deployed / total_value * 100) if total_value > 0 else 0
+    print(f"\n  Capital deployed: ${total_deployed:.2f}")
+    print(f"  Cash reserve:    ${data['cash']:.2f}")
+    print(f"  Account value:   ${total_value:.2f} (at cost — update with current prices)")
+    print(f"  Utilization:     {pct_deployed:.0f}% deployed, {100-pct_deployed:.0f}% cash")
+    print(f"{'='*80}\n")
 
 
-# ---------------------------------------------------------------------------
-# Rebalancing calculator
-# ---------------------------------------------------------------------------
+def show_closed() -> None:
+    """Display trade history with P/L."""
+    data = _load()
+    closed = data["closed"]
 
-def calculate_rebalancing(extra_cash: float = 0.0) -> list[dict]:
-    """
-    Given current positions (and optional new cash to deploy), compute the
-    trades needed to return to target allocations.
+    print(f"\n{'='*85}")
+    print(f" Trade History")
+    print(f"{'='*85}")
 
-    Returns a list of dicts: [{"ticker", "action", "amount"}, ...]
-    """
-    positions = get_positions()
-    current_values = {t: p["market_value"] for t, p in positions.items()}
-    total_value = sum(current_values.values()) + extra_cash
-
-    if total_value == 0:
-        print("  No portfolio value to rebalance.")
-        return []
-
-    trades: list[dict] = []
-
-    print(f"\n{'='*60}")
-    print(f"  Rebalancing Plan  --  Total Value: ${total_value:,.2f}")
-    if extra_cash > 0:
-        print(f"  (includes ${extra_cash:,.2f} new cash to deploy)")
-    print(f"{'='*60}")
-    print(f"  {'Ticker':<8} {'Current':>10} {'Target':>10} {'Trade':>10} {'Action':<6}")
-    print(f"  {'-'*8} {'-'*10} {'-'*10} {'-'*10} {'-'*6}")
-
-    for ticker, info in TARGET_ALLOCATIONS.items():
-        current = current_values.get(ticker, 0.0)
-        target_val = round(total_value * info["pct"], 2)
-        diff = round(target_val - current, 2)
-        action = "BUY" if diff > 0 else ("SELL" if diff < 0 else "HOLD")
-        trades.append({"ticker": ticker, "action": action, "amount": abs(diff)})
-        print(
-            f"  {ticker:<8} ${current:>9,.2f} ${target_val:>9,.2f} "
-            f"${abs(diff):>9,.2f}  {action}"
-        )
-
-    print()
-    return trades
-
-
-# ---------------------------------------------------------------------------
-# Performance snapshot tracker
-# ---------------------------------------------------------------------------
-
-def record_snapshot(label: Optional[str] = None) -> None:
-    """Save a point-in-time snapshot of portfolio value for performance tracking."""
-    positions = get_positions()
-    total = sum(p["market_value"] for p in positions.values())
-    data = _load_data()
-    snapshots = data.setdefault("snapshots", [])
-    snapshots.append({
-        "date": date.today().isoformat(),
-        "total_value": total,
-        "positions": {t: p["market_value"] for t, p in positions.items()},
-        "label": label or "",
-    })
-    _save_data(data)
-    print(f"  Snapshot recorded: {date.today().isoformat()} -- ${total:,.2f}")
-
-
-def print_performance() -> None:
-    """Print performance history from saved snapshots."""
-    data = _load_data()
-    snapshots = data.get("snapshots", [])
-    if not snapshots:
-        print("\n  No snapshots recorded yet. Use record_snapshot() after updating positions.\n")
+    if not closed:
+        print("  No closed trades yet.\n")
         return
 
-    first_value = snapshots[0]["total_value"]
-    print(f"\n{'='*60}")
-    print(f"  Performance History  --  Starting Value: ${first_value:,.2f}")
-    print(f"{'='*60}")
-    print(f"  {'Date':<12} {'Value':>10} {'Change':>10} {'Return':>8} {'Label'}")
-    print(f"  {'-'*12} {'-'*10} {'-'*10} {'-'*8} {'-'*20}")
+    print(f" {'Ticker':<7} {'Strategy':<18} {'Entry':>7} {'Exit':>7} {'P/L':>9} {'P/L%':>7} {'Reason':<15}")
+    print(f" {'-'*7} {'-'*18} {'-'*7} {'-'*7} {'-'*9} {'-'*7} {'-'*15}")
 
-    for snap in snapshots:
-        val = snap["total_value"]
-        change = val - first_value
-        ret = (change / first_value * 100) if first_value else 0
-        print(
-            f"  {snap['date']:<12} ${val:>9,.2f} ${change:>+9,.2f} {ret:>+7.2f}%  {snap.get('label', '')}"
-        )
-    print()
-
-
-# ---------------------------------------------------------------------------
-# Risk management checks
-# ---------------------------------------------------------------------------
-
-def check_risk() -> None:
-    """Run risk checks against current positions."""
-    positions = get_positions()
-    if not positions:
-        print("  No positions to check.")
-        return
-
-    total = sum(p["market_value"] for p in positions.values())
-    print(f"\n{'='*60}")
-    print(f"  Risk Check  --  Portfolio Value: ${total:,.2f}")
-    print(f"{'='*60}")
-
-    data = _load_data()
-    snapshots = data.get("snapshots", [])
-
-    # Portfolio drawdown check
-    if snapshots:
-        peak = max(s["total_value"] for s in snapshots)
-        drawdown = (total - peak) / peak if peak else 0
-        print(f"  Portfolio drawdown from peak (${peak:,.2f}): {drawdown*100:+.1f}%")
-        if drawdown <= PORTFOLIO_DRAWDOWN_DEFENSIVE:
-            print("  ** ALERT: Drawdown exceeds -20%. Consider shifting to 90% core / 10% satellite. **")
-        elif drawdown <= PORTFOLIO_DRAWDOWN_WARNING:
-            print("  ** WARNING: Drawdown exceeds -10%. Review satellite positions and tighten stops. **")
+    total_pnl = 0
+    wins = 0
+    losses = 0
+    for t in closed:
+        total_pnl += t["pnl"]
+        if t["pnl"] >= 0:
+            wins += 1
         else:
-            print("  Drawdown within acceptable range.")
+            losses += 1
+        sym = "+" if t["pnl"] >= 0 else ""
+        print(f" {t['ticker']:<7} {t['strategy']:<18} ${t['entry_price']:>5.2f} ${t['exit_price']:>5.2f} "
+              f"{sym}${t['pnl']:>7.2f} {sym}{t['pnl_pct']:>5.1f}% {t.get('reason', ''):<15}")
 
-    # Position concentration check
-    print()
-    for ticker, pos in positions.items():
-        weight = pos["market_value"] / total if total else 0
-        info = TARGET_ALLOCATIONS.get(ticker, {})
-        category = info.get("category", "unknown")
-
-        if category == "satellite" and weight > 0.10:
-            print(f"  ** WARNING: {ticker} is {weight*100:.1f}% of portfolio (satellite max is 10%) **")
-        elif category != "core" and weight > 0.05 and ticker != "CASH":
-            print(f"  ** NOTE: {ticker} individual stock at {weight*100:.1f}% (max recommended 5%) **")
-
-    print("  Risk check complete.\n")
+    total_trades = wins + losses
+    win_rate = (wins / total_trades * 100) if total_trades > 0 else 0
+    sym = "+" if total_pnl >= 0 else ""
+    print(f"\n  Total trades: {total_trades}  |  Wins: {wins}  |  Losses: {losses}  |  Win rate: {win_rate:.0f}%")
+    print(f"  Net P/L: {sym}${total_pnl:.2f}")
+    print(f"  Current cash: ${data['cash']:.2f}")
+    print(f"{'='*85}\n")
 
 
-# ---------------------------------------------------------------------------
-# CLI entrypoint
-# ---------------------------------------------------------------------------
+def take_snapshot() -> None:
+    """Record a point-in-time snapshot of account value."""
+    data = _load()
+    deployed = sum(p["cost"] for p in data["positions"])
+    total = data["cash"] + deployed
+    data["snapshots"].append({
+        "date": date.today().isoformat(),
+        "cash": data["cash"],
+        "deployed": round(deployed, 2),
+        "total": round(total, 2),
+        "open_positions": len(data["positions"]),
+    })
+    _save(data)
+    print(f"Snapshot saved: ${total:.2f} on {date.today().isoformat()}")
 
-def main() -> None:
-    """Run a full portfolio dashboard."""
-    print_target_allocations()
-    print_positions()
 
-    positions = get_positions()
-    if positions:
-        calculate_rebalancing()
-        print_performance()
-        check_risk()
+def show_snapshots() -> None:
+    """Show account value history."""
+    data = _load()
+    snaps = data["snapshots"]
+
+    if not snaps:
+        print("\nNo snapshots recorded yet. Use 'snapshot' to save one.\n")
+        return
+
+    print(f"\n{'='*60}")
+    print(f" Account Value History")
+    print(f"{'='*60}")
+    print(f" {'Date':<12} {'Total':>10} {'Cash':>10} {'Deployed':>10} {'Positions':>10}")
+    print(f" {'-'*12} {'-'*10} {'-'*10} {'-'*10} {'-'*10}")
+    for s in snaps:
+        print(f" {s['date']:<12} ${s['total']:>8,.2f} ${s['cash']:>8,.2f} "
+              f"${s['deployed']:>8,.2f} {s['open_positions']:>10}")
+
+    if len(snaps) >= 2:
+        first, last = snaps[0]["total"], snaps[-1]["total"]
+        gain = last - first
+        gain_pct = (gain / first) * 100 if first else 0
+        sym = "+" if gain >= 0 else ""
+        print(f"\n  Overall: {sym}${gain:.2f} ({sym}{gain_pct:.1f}%) from {snaps[0]['date']} to {snaps[-1]['date']}")
+    print(f"{'='*60}\n")
+
+
+def reset_account(starting_cash: float = STARTING_CAPITAL) -> None:
+    """Reset the portfolio to starting state."""
+    _save({
+        "cash": starting_cash,
+        "positions": [],
+        "closed": [],
+        "snapshots": [],
+    })
+    print(f"Account reset to ${starting_cash:.2f}")
+
+
+# ---------- Risk Check ---------- #
+
+def risk_check(cost: float) -> None:
+    """Check if a proposed trade meets risk management rules."""
+    data = _load()
+    deployed = sum(p["cost"] for p in data["positions"])
+    total = data["cash"] + deployed
+
+    print(f"\n--- Risk Check for ${cost:.2f} trade ---")
+    print(f"  Account value: ${total:.2f}")
+    print(f"  Current cash:  ${data['cash']:.2f}")
+    print(f"  Deployed:      ${deployed:.2f}")
+    print(f"  Open positions: {len(data['positions'])}")
+
+    issues = []
+    if cost > total * 0.05:
+        issues.append(f"  WARN: Trade cost ${cost:.2f} exceeds 5% max risk (${total*0.05:.2f})")
+    if (deployed + cost) > total * 0.80:
+        issues.append(f"  WARN: Would push deployment to {(deployed+cost)/total*100:.0f}% (max 80%)")
+    if len(data["positions"]) >= 4:
+        issues.append(f"  WARN: Already have {len(data['positions'])} open positions (max 4)")
+    if cost > data["cash"]:
+        issues.append(f"  BLOCK: Insufficient cash. Need ${cost:.2f}, have ${data['cash']:.2f}")
+
+    if issues:
+        print("\n  RISK ISSUES:")
+        for issue in issues:
+            print(issue)
     else:
-        print("  Tip: Start by calling update_position('VOO', shares, price) for each holding.")
-        print("  Then run this script again to see your dashboard.\n")
-        print("  Example interactive session:")
-        print("    >>> from portfolio import update_position, record_snapshot")
-        print("    >>> update_position('VOO', 0.89, 472.15)")
-        print("    >>> update_position('VXF', 0.78, 153.20)")
-        print("    >>> record_snapshot('Initial deployment')")
-        print()
+        print("  ALL CLEAR — trade within risk parameters.")
+    print()
+
+
+# ---------- CLI ---------- #
+
+USAGE = """
+--- IRA Options Swing Trading Portfolio Manager ---
+
+Commands:
+  positions                     Show all open positions
+  open <ticker> <strategy> <contracts> <entry_price> <max_risk> <target> <exp> [notes]
+                                Open a new position
+  close <id> <exit_price> [reason]
+                                Close a position
+  history                       Show closed trade history with stats
+  snapshot                      Save current account snapshot
+  snapshots                     Show account value history
+  risk <cost>                   Risk-check a proposed trade
+  reset [amount]                Reset portfolio (default $1200)
+
+Examples:
+  python portfolio.py open NVDA bull_call_spread 1 1.50 150 250 2026-05-16 "breakout above 900"
+  python portfolio.py close 1 2.80 "hit profit target"
+  python portfolio.py risk 150
+"""
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(USAGE)
+        return
+
+    cmd = sys.argv[1].lower()
+
+    if cmd == "positions":
+        show_positions()
+    elif cmd == "open":
+        if len(sys.argv) < 9:
+            print("Usage: open <ticker> <strategy> <contracts> <entry> <max_risk> <target> <exp> [notes]")
+            return
+        open_position(
+            ticker=sys.argv[2].upper(),
+            strategy=sys.argv[3],
+            contracts=int(sys.argv[4]),
+            entry_price=float(sys.argv[5]),
+            max_risk=float(sys.argv[6]),
+            target=float(sys.argv[7]),
+            expiration=sys.argv[8],
+            notes=" ".join(sys.argv[9:]) if len(sys.argv) > 9 else "",
+        )
+    elif cmd == "close":
+        if len(sys.argv) < 4:
+            print("Usage: close <id> <exit_price> [reason]")
+            return
+        close_position(
+            position_id=int(sys.argv[2]),
+            exit_price=float(sys.argv[3]),
+            reason=" ".join(sys.argv[4:]) if len(sys.argv) > 4 else "",
+        )
+    elif cmd == "history":
+        show_closed()
+    elif cmd == "snapshot":
+        take_snapshot()
+    elif cmd == "snapshots":
+        show_snapshots()
+    elif cmd == "risk":
+        if len(sys.argv) < 3:
+            print("Usage: risk <cost>")
+            return
+        risk_check(float(sys.argv[2]))
+    elif cmd == "reset":
+        amount = float(sys.argv[2]) if len(sys.argv) > 2 else STARTING_CAPITAL
+        reset_account(amount)
+    else:
+        print(f"Unknown command: {cmd}")
+        print(USAGE)
 
 
 if __name__ == "__main__":

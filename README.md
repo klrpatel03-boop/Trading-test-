@@ -1,49 +1,50 @@
-# IRA Trading Strategy & Portfolio Tracker
+# Aggressive Options Swing Trading — $1,200 Rollover IRA
 
-Trading strategy and portfolio management tools for a **$1,200 Rollover IRA** at Fidelity Investments.
+Options swing trading strategy and tools for a **$1,200 Rollover IRA** at Fidelity. Built for aggressive, active trading using debit spreads, long calls/puts, cash-secured puts, and credit spreads.
 
-## Overview
+## Files
 
-This repository contains a core-satellite investment strategy tailored for a small tax-advantaged retirement account, along with Python scripts for tracking and managing the portfolio.
-
-- **STRATEGY.md** -- Detailed trading strategy document covering IRA rules, the core-satellite approach, specific allocations, entry/rebalancing/risk management rules, and tax advantages.
-- **portfolio.py** -- Portfolio tracker that defines target allocations, tracks positions, calculates rebalancing trades, monitors performance over time, and runs risk checks.
-- **watchlist.py** -- Curated watchlist of ETFs and individual stocks suitable for a small IRA, organized by category (core index, sector, growth, dividend).
+| File               | Purpose                                            |
+|--------------------|----------------------------------------------------|
+| `STRATEGY.md`      | Full trading playbook — setups, rules, risk management |
+| `portfolio.py`     | Track open positions, P/L, cash, and account value |
+| `screener.py`      | Watchlist with options liquidity data + setup checklists |
+| `trade_journal.py` | Log every trade with thesis, outcome, and self-grading |
 
 ## Quick Start
 
-No external dependencies are required -- everything uses the Python standard library.
+No dependencies — everything uses the Python standard library.
 
 ```bash
-# View target allocations and portfolio dashboard
-python3 portfolio.py
+# View the trading strategy
+cat STRATEGY.md
 
-# View the full watchlist
-python3 watchlist.py
-```
+# Portfolio management
+python3 portfolio.py positions           # Show open positions
+python3 portfolio.py open NVDA bull_call_spread 1 1.50 150 250 2026-05-16 "breakout"
+python3 portfolio.py close 1 2.80 "profit target hit"
+python3 portfolio.py history             # Trade history with P/L stats
+python3 portfolio.py risk 150            # Risk-check before entering
 
-### Tracking Your Portfolio
+# Screener and watchlist
+python3 screener.py watchlist            # Full watchlist
+python3 screener.py watchlist 1          # Tier 1 only (mega-caps)
+python3 screener.py detail NVDA          # Detailed stock info
+python3 screener.py setup breakout       # Setup checklist
+python3 screener.py sizing 1200         # Position sizing rules
 
-```python
-from portfolio import update_position, record_snapshot, print_positions
-
-# Record your holdings after purchasing
-update_position("VOO", 0.89, 472.15)
-update_position("VXUS", 3.12, 57.80)
-# ... add all positions
-
-# Take a performance snapshot
-record_snapshot("Initial deployment")
-
-# View your dashboard
-print_positions()
+# Trade journal
+python3 trade_journal.py log NVDA bull_call_spread breakout 1.50 1 2026-05-16 "880/900" "breaking out"
+python3 trade_journal.py close 1 2.80 "hit target" A
+python3 trade_journal.py stats           # Win rate, P/L by setup, by strategy
 ```
 
 ## Strategy Summary
 
-| Component | Allocation | Purpose |
-|-----------|-----------|---------|
-| **Core** (75%) | $900 | Broad market index ETFs for low-cost diversification |
-| **Satellite** (25%) | $300 | Sector ETFs and tactical positions for alpha generation |
+- **Style**: Aggressive options swing trading (2-15 day holds)
+- **Primary tool**: Debit spreads (defined risk, capital efficient)
+- **Risk per trade**: Max 5% of account ($60 on $1,200)
+- **Max deployed**: 80% of account (20% always in cash)
+- **Max positions**: 4 open at any time
 
-See [STRATEGY.md](STRATEGY.md) for the full plan.
+See [STRATEGY.md](STRATEGY.md) for the full playbook.
