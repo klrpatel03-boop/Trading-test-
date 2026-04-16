@@ -149,6 +149,153 @@ def trend_strength(close: pd.Series) -> dict:
     }
 
 
+# --- Advanced Indicators --- #
+
+def macd(close: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9) -> dict:
+    """MACD — trend momentum and crossover detection."""
+    ema_fast = ema(close, fast)
+    ema_slow = ema(close, slow)
+    macd_line = ema_fast - ema_slow
+    signal_line = ema(macd_line, signal)
+    histogram = macd_line - signal_line
+    return {"macd": macd_line, "signal": signal_line, "histogram": histogram}
+
+
+def adx(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14) -> pd.Series:
+    """Average Directional Index — measures trend strength regardless of direction.
+    >25 = strong trend, <20 = weak/no trend."""
+    plus_dm = high.diff()
+    minus_dm = -low.diff()
+    plus_dm = plus_dm.where((plus_dm > minus_dm) & (plus_dm > 0), 0.0)
+    minus_dm = minus_dm.where((minus_dm > plus_dm) & (minus_dm > 0), 0.0)
+    atr_vals = atr(high, low, close, period)
+    plus_di = 100 * (plus_dm.ewm(alpha=1/period, min_periods=period, adjust=False).mean() /
+                     atr_vals.replace(0, np.nan))
+    minus_di = 100 * (minus_dm.ewm(alpha=1/period, min_periods=period, adjust=False).mean() /
+                      atr_vals.replace(0, np.nan))
+    dx = 100 * ((plus_di - minus_di).abs() / (plus_di + minus_di).replace(0, np.nan))
+    return dx.ewm(alpha=1/period, min_periods=period, adjust=False).mean()
+
+
+def obv(close: pd.Series, volume: pd.Series) -> pd.Series:
+    """On-Balance Volume — cumulative volume flow showing accumulation/distribution."""
+    direction = np.sign(close.diff())
+    return (volume * direction).cumsum()
+
+
+def obv_trend(close: pd.Series, volume: pd.Series, period: int = 20) -> str:
+    """Classify OBV trend vs price trend to detect divergences."""
+    obv_vals = obv(close, volume)
+    obv_slope = obv_vals.iloc[-1] - obv_vals.iloc[-period] if len(obv_vals) >= period else 0
+    price_slope = close.iloc[-1] - close.iloc[-period] if len(close) >= period else 0
+    if obv_slope > 0 and price_slope > 0:
+        return "confirmed_up"
+    elif obv_slope < 0 and price_slope < 0:
+        return "confirmed_down"
+    elif obv_slope > 0 and price_slope <= 0:
+        return "bullish_divergence"
+    elif obv_slope < 0 and price_slope >= 0:
+        return "bearish_divergence"
+    return "neutral"
+
+
+def mfi(high: pd.Series, low: pd.Series, close: pd.Series,
+        volume: pd.Series, period: int = 14) -> pd.Series:
+    """Money Flow Index — volume-weighted RSI. Detects institutional buying/selling."""
+    typical_price = (high + low + close) / 3
+    raw_mf = typical_price * volume
+    delta = typical_price.diff()
+    pos_mf = raw_mf.where(delta > 0, 0.0)
+    neg_mf = raw_mf.where(delta <= 0, 0.0)
+    pos_sum = pos_mf.rolling(window=period, min_periods=period).sum()
+    neg_sum = neg_mf.rolling(window=period, min_periods=period).sum()
+    mf_ratio = pos_sum / neg_sum.replace(0, np.nan)
+    return 100 - (100 / (1 + mf_ratio))
+
+
+def relative_strength(stock: pd.Series, benchmark: pd.Series, period: int = 20) -> dict:
+    """Relative strength of a stock vs a benchmark (e.g., SPY or sector ETF).
+    RS > 1 = outperforming, RS < 1 = underperforming."""
+    rs_line = stock / benchmark
+    rs_now = rs_line.iloc[-1]
+    rs_prev = rs_line.iloc[-period] if len(rs_line) >= period else rs_now
+    rs_change = ((rs_now - rs_prev) / rs_prev * 100) if rs_prev != 0 else 0
+    # Percentile rank over lookback
+    lookback = min(len(rs_line), 252)
+    rs_pctile = (rs_line.tail(lookback) < rs_now).sum() / lookback * 100
+    return {
+        "rs_ratio": round(rs_now, 4),
+        "rs_change_pct": round(rs_change, 2),
+        "rs_percentile": round(rs_pctile, 1),
+        "outperforming": rs_change > 0,
+    }
+
+
+def historical_volatility_rank(close: pd.Series, window: int = 30,
+                                lookback: int = 252) -> float:
+    """HV rank — proxy for IV rank. Where is current vol vs the past year? 0-100."""
+    log_returns = np.log(close / close.shift(1))
+    rolling_vol = log_returns.rolling(window=window).std() * np.sqrt(252) * 100
+    recent_vol = rolling_vol.iloc[-1]
+    if np.isnan(recent_vol):
+        return 50.0
+    hist = rolling_vol.tail(lookback).dropna()
+    if len(hist) < 30:
+        return 50.0
+    rank = (hist < recent_vol).sum() / len(hist) * 100
+    return round(rank, 1)
+
+
+def roc(series: pd.Series, period: int = 10) -> pd.Series:
+    """Rate of Change — momentum as percentage change over N periods."""
+    return ((series - series.shift(period)) / series.shift(period).replace(0, np.nan)) * 100
+
+
+def stochastic(high: pd.Series, low: pd.Series, close: pd.Series,
+               k_period: int = 14, d_period: int = 3) -> dict:
+    """Stochastic Oscillator — momentum within a trading range."""
+    lowest_low = low.rolling(window=k_period).min()
+    highest_high = high.rolling(window=k_period).max()
+    k = 100 * (close - lowest_low) / (highest_high - lowest_low).replace(0, np.nan)
+    d = k.rolling(window=d_period).mean()
+    return {"k": k, "d": d}
+
+
+def accumulation_distribution(high: pd.Series, low: pd.Series,
+                               close: pd.Series, volume: pd.Series) -> pd.Series:
+    """Accumulation/Distribution Line — measures money flow based on close position in range."""
+    clv = ((close - low) - (high - close)) / (high - low).replace(0, np.nan)
+    clv = clv.fillna(0)
+    return (clv * volume).cumsum()
+
+
+def multi_timeframe_trend(daily_close: pd.Series) -> dict:
+    """Assess trend on multiple timeframes from daily data."""
+    # Weekly approximation: resample or use 5-day chunks
+    price = daily_close.iloc[-1]
+    ma_10 = sma(daily_close, 10).iloc[-1]   # ~2 week
+    ma_20 = sma(daily_close, 20).iloc[-1]   # ~1 month
+    ma_50 = sma(daily_close, 50).iloc[-1]   # ~quarter
+    ma_200 = sma(daily_close, 200).iloc[-1] if len(daily_close) >= 200 else np.nan
+
+    short_trend = "up" if not np.isnan(ma_10) and price > ma_10 else "down"
+    med_trend = "up" if not np.isnan(ma_50) and price > ma_50 else "down"
+    long_trend = "up" if not np.isnan(ma_200) and price > ma_200 else ("down" if not np.isnan(ma_200) else "N/A")
+
+    aligned = short_trend == med_trend == "up"
+    all_aligned = aligned and long_trend == "up"
+
+    return {
+        "short": short_trend,
+        "medium": med_trend,
+        "long": long_trend,
+        "aligned_bullish": aligned,
+        "fully_aligned": all_aligned,
+        "ma_10": round(ma_10, 2) if not np.isnan(ma_10) else None,
+        "ma_200": round(ma_200, 2) if not np.isnan(ma_200) else None,
+    }
+
+
 def analyze(df: pd.DataFrame) -> dict:
     """
     Run full technical analysis on a yfinance DataFrame.
@@ -175,20 +322,64 @@ def analyze(df: pd.DataFrame) -> dict:
     dist_20ma = ((price - ma_20) / ma_20 * 100) if not np.isnan(ma_20) and ma_20 != 0 else None
     dist_50ma = ((price - ma_50) / ma_50 * 100) if not np.isnan(ma_50) and ma_50 != 0 else None
 
+    # Advanced indicators
+    macd_data = macd(close)
+    macd_val = macd_data["macd"].iloc[-1]
+    macd_sig = macd_data["signal"].iloc[-1]
+    macd_hist = macd_data["histogram"].iloc[-1]
+    macd_prev_hist = macd_data["histogram"].iloc[-2] if len(macd_data["histogram"]) >= 2 else 0
+
+    adx_val = adx(high, low, close).iloc[-1]
+    mfi_val = mfi(high, low, close, volume).iloc[-1]
+    obv_signal = obv_trend(close, volume)
+    hv_rank = historical_volatility_rank(close)
+    roc_val = roc(close, 10).iloc[-1]
+    stoch = stochastic(high, low, close)
+    stoch_k = stoch["k"].iloc[-1]
+    stoch_d = stoch["d"].iloc[-1]
+    mtf = multi_timeframe_trend(close)
+
+    # MACD crossover detection
+    macd_cross = "none"
+    if macd_hist > 0 and macd_prev_hist <= 0:
+        macd_cross = "bullish"
+    elif macd_hist < 0 and macd_prev_hist >= 0:
+        macd_cross = "bearish"
+
+    def _safe(val, decimals=2):
+        return round(val, decimals) if not (isinstance(val, float) and np.isnan(val)) else None
+
     return {
         "price": round(price, 2),
-        "rsi": round(rsi_val, 1) if not np.isnan(rsi_val) else None,
-        "atr": round(atr_val, 2) if not np.isnan(atr_val) else None,
-        "atr_pct": round(atr_val / price * 100, 2) if not np.isnan(atr_val) and price > 0 else None,
-        "ma_20": round(ma_20, 2) if not np.isnan(ma_20) else None,
-        "ma_50": round(ma_50, 2) if not np.isnan(ma_50) else None,
+        # Classic
+        "rsi": _safe(rsi_val, 1),
+        "atr": _safe(atr_val),
+        "atr_pct": _safe(atr_val / price * 100) if not np.isnan(atr_val) and price > 0 else None,
+        "ma_20": _safe(ma_20),
+        "ma_50": _safe(ma_50),
         "dist_20ma_pct": round(dist_20ma, 2) if dist_20ma is not None else None,
         "dist_50ma_pct": round(dist_50ma, 2) if dist_50ma is not None else None,
-        "bb_upper": round(bb["upper"].iloc[-1], 2) if not np.isnan(bb["upper"].iloc[-1]) else None,
-        "bb_lower": round(bb["lower"].iloc[-1], 2) if not np.isnan(bb["lower"].iloc[-1]) else None,
-        "bb_pct_b": round(bb["pct_b"].iloc[-1], 2) if not np.isnan(bb["pct_b"].iloc[-1]) else None,
-        "volume_ratio": round(vol_ratio, 2) if not np.isnan(vol_ratio) else None,
+        "bb_upper": _safe(bb["upper"].iloc[-1]),
+        "bb_lower": _safe(bb["lower"].iloc[-1]),
+        "bb_pct_b": _safe(bb["pct_b"].iloc[-1]),
+        "volume_ratio": _safe(vol_ratio),
         "consolidation_pct": round(consol, 2),
         "trend": trend,
         "support_resistance": sr,
+        # Advanced — momentum
+        "macd": _safe(macd_val),
+        "macd_signal": _safe(macd_sig),
+        "macd_histogram": _safe(macd_hist),
+        "macd_cross": macd_cross,
+        "roc_10": _safe(roc_val),
+        "stoch_k": _safe(stoch_k, 1),
+        "stoch_d": _safe(stoch_d, 1),
+        # Advanced — trend strength
+        "adx": _safe(adx_val, 1),
+        "multi_timeframe": mtf,
+        # Advanced — money flow
+        "mfi": _safe(mfi_val, 1),
+        "obv_signal": obv_signal,
+        # Advanced — volatility context
+        "hv_rank": hv_rank,
     }

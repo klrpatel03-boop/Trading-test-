@@ -22,6 +22,7 @@ import yfinance as yf
 import indicators
 import screener
 import portfolio
+import sector_analysis
 
 # --- Config --- #
 
@@ -120,167 +121,342 @@ def fetch_options_chain(ticker: str, min_dte: int = 14, max_dte: int = 45) -> di
         return None
 
 
-# --- Setup Detection --- #
+# --- Multi-Factor Setup Detection --- #
 
-def detect_breakout(ticker: str, a: dict) -> dict | None:
-    """Detect breakout from consolidation."""
+def _build_thesis(factors: list[str]) -> str:
+    """Combine factor descriptions into a trade thesis."""
+    return " | ".join(factors)
+
+
+def detect_breakout(ticker: str, a: dict, rs: dict | None, sector_rank: dict | None) -> dict | None:
+    """Breakout: consolidation + volume surge + sector tailwind + money flow confirmation."""
     rsi_val = a.get("rsi")
     vol = a.get("volume_ratio")
     consol = a.get("consolidation_pct")
     sr = a.get("support_resistance", {})
     price = a.get("price", 0)
+    adx_val = a.get("adx")
+    macd_cross = a.get("macd_cross")
+    obv_sig = a.get("obv_signal")
+    mfi_val = a.get("mfi")
+    mtf = a.get("multi_timeframe", {})
 
-    if rsi_val is None or vol is None:
+    if rsi_val is None or vol is None or consol is None:
         return None
 
     r1 = sr.get("resistance_1", price * 1.1)
     near_resistance = price >= r1 * 0.98
 
-    if consol is not None and consol < 7 and vol >= 1.2 and 38 <= rsi_val <= 68 and near_resistance:
-        score = 50
-        if consol < 4:
-            score += 15
-        elif consol < 5.5:
-            score += 8
-        if vol >= 1.8:
-            score += 12
-        elif vol >= 1.4:
-            score += 6
-        if 45 <= rsi_val <= 58:
-            score += 8
-        score = min(score, 95)
+    if not (consol < 8 and vol >= 1.1 and 35 <= rsi_val <= 72 and near_resistance):
+        return None
 
-        return {
-            "setup": "breakout",
-            "ticker": ticker,
-            "score": score,
-            "detail": f"Tight range ({consol:.1f}%), vol {vol:.1f}x avg, near R1 ${r1:.2f}",
-            "direction": "bullish",
-            "strategy": "bull_call_spread",
-        }
-    return None
+    score = 40
+    factors = []
+
+    # Consolidation quality
+    if consol < 4:
+        score += 12; factors.append(f"very tight range {consol:.1f}%")
+    elif consol < 6:
+        score += 6; factors.append(f"tight range {consol:.1f}%")
+
+    # Volume confirmation
+    if vol >= 2.0:
+        score += 12; factors.append(f"strong volume surge {vol:.1f}x")
+    elif vol >= 1.4:
+        score += 7; factors.append(f"vol {vol:.1f}x avg")
+
+    # MACD crossover = momentum igniting
+    if macd_cross == "bullish":
+        score += 10; factors.append("MACD bullish crossover")
+
+    # Money flow — institutional accumulation
+    if obv_sig == "confirmed_up":
+        score += 8; factors.append("OBV confirming accumulation")
+    elif obv_sig == "bullish_divergence":
+        score += 12; factors.append("OBV bullish divergence (stealth buying)")
+
+    if mfi_val and mfi_val > 60:
+        score += 5; factors.append(f"MFI {mfi_val:.0f} (strong money flow)")
+
+    # Trend strength — ADX rising = real trend forming
+    if adx_val and adx_val > 25:
+        score += 6; factors.append(f"ADX {adx_val:.0f} (strong trend)")
+
+    # Multi-timeframe alignment
+    if mtf.get("aligned_bullish"):
+        score += 8; factors.append("all timeframes aligned bullish")
+
+    # Sector tailwind
+    if sector_rank and sector_rank.get("momentum_score", 0) > 2:
+        score += 8; factors.append(f"sector HOT ({sector_rank['sector']})")
+    elif sector_rank and sector_rank.get("momentum_score", 0) > 0.5:
+        score += 3; factors.append(f"sector positive ({sector_rank['sector']})")
+
+    # Relative strength — outperforming peers
+    if rs and rs.get("outperforming_sector"):
+        score += 6; factors.append("outperforming sector")
+    if rs and rs.get("outperforming_spy"):
+        score += 4; factors.append("outperforming SPY")
+
+    score = min(score, 97)
+    if score < 50:
+        return None
+
+    return {
+        "setup": "breakout",
+        "ticker": ticker,
+        "score": score,
+        "detail": _build_thesis(factors),
+        "direction": "bullish",
+        "strategy": "bull_call_spread",
+    }
 
 
-def detect_oversold_bounce(ticker: str, a: dict) -> dict | None:
-    """Detect oversold bounce at support."""
+def detect_oversold_bounce(ticker: str, a: dict, rs: dict | None, sector_rank: dict | None) -> dict | None:
+    """Oversold reversal: RSI + MFI + OBV divergence + sector not collapsing."""
     rsi_val = a.get("rsi")
     vol = a.get("volume_ratio")
     price = a.get("price", 0)
     ma_50 = a.get("ma_50")
     sr = a.get("support_resistance", {})
     bb_pct = a.get("bb_pct_b")
+    mfi_val = a.get("mfi")
+    obv_sig = a.get("obv_signal")
+    stoch_k = a.get("stoch_k")
+    macd_cross = a.get("macd_cross")
+    hv_rank = a.get("hv_rank", 50)
+    mtf = a.get("multi_timeframe", {})
 
-    if rsi_val is None or rsi_val > 35:
+    if rsi_val is None or rsi_val > 38:
         return None
 
     s1 = sr.get("support_1", 0)
-    near_support = ma_50 and abs(price - ma_50) / ma_50 < 0.03
-    near_sr_support = s1 > 0 and abs(price - s1) / s1 < 0.03
-    at_bb_lower = bb_pct is not None and bb_pct < 0.1
+    near_support = ma_50 and abs(price - ma_50) / ma_50 < 0.04
+    near_sr = s1 > 0 and abs(price - s1) / s1 < 0.04
+    at_bb_lower = bb_pct is not None and bb_pct < 0.15
 
-    if near_support or near_sr_support or at_bb_lower:
-        score = 55
-        if rsi_val < 25:
-            score += 15
-        elif rsi_val < 30:
-            score += 8
-        if vol and vol >= 1.3:
-            score += 10
-        if at_bb_lower:
-            score += 5
-        if near_support and near_sr_support:
-            score += 8
-        score = min(score, 95)
+    if not (near_support or near_sr or at_bb_lower):
+        return None
 
-        support_desc = f"50MA ${ma_50:.2f}" if near_support else f"S1 ${s1:.2f}"
-        return {
-            "setup": "oversold_bounce",
-            "ticker": ticker,
-            "score": score,
-            "detail": f"RSI {rsi_val:.0f}, near {support_desc}, vol {vol:.1f}x" if vol else f"RSI {rsi_val:.0f}",
-            "direction": "bullish",
-            "strategy": "bull_call_spread",
-        }
-    return None
+    score = 42
+    factors = []
+
+    # Depth of oversold
+    if rsi_val < 22:
+        score += 15; factors.append(f"deeply oversold RSI {rsi_val:.0f}")
+    elif rsi_val < 30:
+        score += 8; factors.append(f"oversold RSI {rsi_val:.0f}")
+    else:
+        factors.append(f"RSI {rsi_val:.0f}")
+
+    # Support confluence — multiple levels aligning = stronger
+    supports_hit = 0
+    support_desc = []
+    if near_support:
+        supports_hit += 1; support_desc.append(f"50MA ${ma_50:.0f}")
+    if near_sr:
+        supports_hit += 1; support_desc.append(f"S1 ${s1:.0f}")
+    if at_bb_lower:
+        supports_hit += 1; support_desc.append("lower BB")
+    if supports_hit >= 2:
+        score += 10; factors.append(f"support confluence: {', '.join(support_desc)}")
+    else:
+        score += 4; factors.append(f"at {support_desc[0]}")
+
+    # Stochastic oversold with potential crossover
+    if stoch_k is not None and stoch_k < 20:
+        score += 6; factors.append(f"stochastic oversold ({stoch_k:.0f})")
+
+    # OBV divergence = smart money buying while price drops
+    if obv_sig == "bullish_divergence":
+        score += 14; factors.append("OBV bullish divergence — institutions accumulating")
+    elif obv_sig == "confirmed_up":
+        score += 6; factors.append("OBV positive despite price drop")
+
+    # MFI showing buying pressure despite oversold price
+    if mfi_val and mfi_val > 40:
+        score += 5; factors.append(f"MFI {mfi_val:.0f} (buying pressure despite drop)")
+
+    # MACD turning = momentum shifting
+    if macd_cross == "bullish":
+        score += 10; factors.append("MACD bullish crossover — reversal signal")
+
+    # Volume on reversal
+    if vol and vol >= 1.5:
+        score += 6; factors.append(f"reversal on high volume ({vol:.1f}x)")
+
+    # IV context — high HV rank means expensive options, prefer spreads
+    if hv_rank > 70:
+        factors.append(f"HV rank {hv_rank:.0f}% — use spreads (premiums rich)")
+
+    # Sector context — don't catch a knife in a dying sector
+    if sector_rank and sector_rank.get("momentum_score", 0) < -3:
+        score -= 15; factors.append("WARN: sector in freefall")
+    elif sector_rank and "oversold" in sector_rank.get("status", ""):
+        score += 4; factors.append("sector also oversold — potential broad reversal")
+
+    # Long-term trend still intact?
+    if mtf.get("long") == "up":
+        score += 5; factors.append("long-term uptrend intact (above 200MA)")
+
+    score = min(score, 97)
+    if score < 50:
+        return None
+
+    return {
+        "setup": "oversold_bounce",
+        "ticker": ticker,
+        "score": score,
+        "detail": _build_thesis(factors),
+        "direction": "bullish",
+        "strategy": "bull_call_spread",
+    }
 
 
-def detect_momentum_pullback(ticker: str, a: dict) -> dict | None:
-    """Detect pullback to 20MA in an uptrend."""
+def detect_momentum_pullback(ticker: str, a: dict, rs: dict | None, sector_rank: dict | None) -> dict | None:
+    """Momentum pullback: trending stock pulls to MA + multi-timeframe + sector strength."""
     trend = a.get("trend", {})
     dist_20 = a.get("dist_20ma_pct")
     dist_50 = a.get("dist_50ma_pct")
     rsi_val = a.get("rsi")
     ma_20 = a.get("ma_20")
+    adx_val = a.get("adx")
+    obv_sig = a.get("obv_signal")
+    macd_hist = a.get("macd_histogram")
+    mfi_val = a.get("mfi")
+    mtf = a.get("multi_timeframe", {})
 
     if trend.get("direction") not in ("uptrend", "strong_uptrend"):
         return None
     if dist_20 is None or dist_50 is None:
         return None
-    if not (-3.0 <= dist_20 <= 1.5 and dist_50 > 0):
-        return None
-    if rsi_val is not None and (rsi_val < 35 or rsi_val > 60):
+    if not (-4.0 <= dist_20 <= 2.0 and dist_50 > 0):
         return None
 
-    score = 50
-    if abs(dist_20) < 1.0:
-        score += 15
-    elif abs(dist_20) < 2.0:
-        score += 8
-    if trend.get("direction") == "strong_uptrend":
-        score += 10
-    if rsi_val and 42 <= rsi_val <= 55:
-        score += 8
-    score = min(score, 95)
+    score = 40
+    factors = []
+
+    # Pullback precision
+    if -1.5 <= dist_20 <= 0.5:
+        score += 14; factors.append(f"right at 20MA ${ma_20:.0f} ({dist_20:+.1f}%)")
+    elif -3.0 <= dist_20 <= 1.5:
+        score += 7; factors.append(f"near 20MA ${ma_20:.0f} ({dist_20:+.1f}%)")
+
+    # Trend quality — ADX confirms real trend, not choppy market
+    if adx_val and adx_val > 30:
+        score += 10; factors.append(f"strong trend ADX {adx_val:.0f}")
+    elif adx_val and adx_val > 22:
+        score += 5; factors.append(f"trending ADX {adx_val:.0f}")
+
+    # Multi-timeframe — all timeframes aligned = high probability
+    if mtf.get("fully_aligned"):
+        score += 10; factors.append("all timeframes bullish (10/20/50/200 MA)")
+    elif mtf.get("aligned_bullish"):
+        score += 6; factors.append("short+med timeframes bullish")
+
+    # OBV — accumulation during pullback = strong hands holding
+    if obv_sig in ("confirmed_up", "bullish_divergence"):
+        score += 8; factors.append("OBV shows accumulation during pullback")
+
+    # MACD histogram turning up from below = momentum resuming
+    if macd_hist and macd_hist > 0:
+        score += 5; factors.append("MACD positive — momentum intact")
+
+    # MFI above 50 = net buying pressure
+    if mfi_val and mfi_val > 50:
+        score += 4; factors.append(f"MFI {mfi_val:.0f} — buying pressure")
+
+    # Relative strength — want stocks outperforming during pullbacks
+    if rs and rs.get("outperforming_sector") and rs.get("outperforming_spy"):
+        score += 10; factors.append("relative strength leader (beating sector + SPY)")
+    elif rs and rs.get("outperforming_spy"):
+        score += 5; factors.append("outperforming SPY")
+
+    # Sector tailwind
+    if sector_rank and sector_rank.get("momentum_score", 0) > 2:
+        score += 8; factors.append(f"hot sector tailwind ({sector_rank['sector']})")
+    elif sector_rank and sector_rank.get("momentum_score", 0) > 0.5:
+        score += 3
+
+    score = min(score, 97)
+    if score < 50:
+        return None
 
     return {
         "setup": "momentum_pullback",
         "ticker": ticker,
         "score": score,
-        "detail": f"Uptrend, pulled back to 20MA ${ma_20:.2f} ({dist_20:+.1f}%), RSI {rsi_val:.0f}",
+        "detail": _build_thesis(factors),
         "direction": "bullish",
         "strategy": "long_call",
     }
 
 
-def detect_mean_reversion_csp(ticker: str, a: dict, cash: float) -> dict | None:
-    """Detect deeply oversold stock suitable for cash-secured put."""
+def detect_mean_reversion_csp(ticker: str, a: dict, cash: float,
+                               rs: dict | None, sector_rank: dict | None) -> dict | None:
+    """Mean reversion CSP: deeply oversold + MFI divergence + sector not dead."""
     rsi_val = a.get("rsi")
     price = a.get("price", 0)
+    obv_sig = a.get("obv_signal")
+    mfi_val = a.get("mfi")
+    mtf = a.get("multi_timeframe", {})
 
     if price * 100 > cash:
         return None
-    if rsi_val is None or rsi_val > 30:
+    if rsi_val is None or rsi_val > 32:
         return None
 
-    score = 50
+    score = 42
+    factors = []
+
     if rsi_val < 20:
-        score += 20
+        score += 18; factors.append(f"extreme oversold RSI {rsi_val:.0f}")
     elif rsi_val < 25:
-        score += 12
+        score += 10; factors.append(f"deeply oversold RSI {rsi_val:.0f}")
+    else:
+        score += 4; factors.append(f"oversold RSI {rsi_val:.0f}")
+
     bb_pct = a.get("bb_pct_b")
     if bb_pct is not None and bb_pct < 0.05:
-        score += 10
-    score = min(score, 95)
+        score += 8; factors.append("below lower Bollinger Band")
+
+    if obv_sig == "bullish_divergence":
+        score += 12; factors.append("OBV divergence — accumulation on the dip")
+
+    if mfi_val and 30 < mfi_val < 50:
+        score += 5; factors.append("MFI stabilizing")
+
+    if mtf.get("long") == "up":
+        score += 6; factors.append("long-term trend still up — pullback, not breakdown")
+
+    if sector_rank and sector_rank.get("momentum_score", 0) < -4:
+        score -= 12; factors.append("WARN: sector collapsing")
+
+    score = min(score, 97)
+    if score < 50:
+        return None
 
     strike_target = round(price * 0.92, 2)
+    factors.append(f"CSP target strike ~${strike_target:.2f}")
     return {
         "setup": "mean_reversion_csp",
         "ticker": ticker,
         "score": score,
-        "detail": f"RSI {rsi_val:.0f}, price ${price:.2f}, CSP strike ~${strike_target:.2f}",
+        "detail": _build_thesis(factors),
         "direction": "neutral_bullish",
         "strategy": "cash_secured_put",
     }
 
 
-def detect_all(ticker: str, analysis: dict, cash: float) -> list[dict]:
-    """Run all setup detectors on a ticker."""
+def detect_all(ticker: str, analysis: dict, cash: float,
+               rs: dict | None = None, sector_rank: dict | None = None) -> list[dict]:
+    """Run all multi-factor setup detectors on a ticker."""
     results = []
     for fn in [detect_breakout, detect_oversold_bounce, detect_momentum_pullback]:
-        r = fn(ticker, analysis)
+        r = fn(ticker, analysis, rs, sector_rank)
         if r:
             results.append(r)
-    r = detect_mean_reversion_csp(ticker, analysis, cash)
+    r = detect_mean_reversion_csp(ticker, analysis, cash, rs, sector_rank)
     if r:
         results.append(r)
     return results
@@ -378,61 +554,109 @@ def recommend_trade(ticker: str, setup: dict, analysis: dict,
 
 # --- Scoring --- #
 
-def score_idea(setup: dict, rec: dict, wl_entry: dict | None) -> float:
-    """Score a trade idea 0-100."""
+def score_idea(setup: dict, rec: dict, wl_entry: dict | None,
+               rs: dict | None = None) -> float:
+    """Multi-factor final score 0-100."""
     base = setup.get("score", 50)
     tier = wl_entry.get("tier", 3) if wl_entry else 3
-    tier_bonus = {1: 15, 2: 8, 3: 3}.get(tier, 0)
+    tier_bonus = {1: 12, 2: 6, 3: 2}.get(tier, 0)
     cost = rec.get("total_cost")
-    afford_bonus = 10 if cost and cost < 100 else (5 if cost and cost < 200 else 0)
+    afford_bonus = 8 if cost and cost < 100 else (4 if cost and cost < 200 else 0)
     rr_str = rec.get("risk_reward", "")
     rr_bonus = 0
     if rr_str and ":" in rr_str:
         try:
             rr_val = float(rr_str.split(":")[1])
-            rr_bonus = min(int(rr_val * 8), 20)
+            rr_bonus = min(int(rr_val * 6), 15)
         except (ValueError, IndexError):
             pass
-    return min(base * 0.45 + tier_bonus + afford_bonus + rr_bonus, 99)
+    # Relative strength bonus — we want the leaders
+    rs_bonus = 0
+    if rs:
+        if rs.get("outperforming_spy") and rs.get("outperforming_sector"):
+            rs_bonus = 10
+        elif rs.get("outperforming_spy"):
+            rs_bonus = 5
+    return min(base * 0.5 + tier_bonus + afford_bonus + rr_bonus + rs_bonus, 99)
 
 
 # --- Morning Brief Formatter --- #
 
 def format_brief(ideas: list[dict], account: dict, market: dict,
-                 all_analyses: dict) -> str:
-    """Format the full morning brief."""
+                 all_analyses: dict, sector_report: str,
+                 rs_data: dict) -> str:
+    """Format the full morning brief with sector analysis and relative strength."""
     lines = []
-    w = 68
+    w = 76
     lines.append("=" * w)
     lines.append(f" MORNING SCAN — {date.today().strftime('%A, %B %d, %Y')}")
     lines.append(f" Account: ${account['total']:,.0f} | Cash: ${account['cash']:,.0f}"
                  f" | Open: {account['num_open']} | Capacity: {MAX_POSITIONS - account['num_open']} more")
     lines.append("=" * w)
 
-    # Market pulse
+    # Market pulse with advanced context
     lines.append("\n MARKET PULSE")
     for sym in ["SPY", "QQQ"]:
         if sym in market:
             m = market[sym]
-            lines.append(f"   {sym}: ${m['price']:.2f} | RSI {m['rsi']:.0f}"
-                         f" | Trend: {m['trend']['direction']}")
+            mtf = m.get("multi_timeframe", {})
+            adx_v = m.get("adx")
+            hv = m.get("hv_rank", 0)
+            trend_str = m["trend"]["direction"]
+            adx_str = f" | ADX {adx_v:.0f}" if adx_v else ""
+            mtf_str = " | ALL TF aligned" if mtf.get("fully_aligned") else ""
+            lines.append(f"   {sym}: ${m['price']:.2f} | RSI {m['rsi']:.0f} | {trend_str}"
+                         f"{adx_str} | HV rank {hv:.0f}%{mtf_str}")
     lines.append("")
 
-    # Trade ideas
+    # Sector rotation
+    if sector_report:
+        lines.append(sector_report)
+        lines.append("")
+
+    # Trade ideas with full thesis
     if ideas:
         lines.append(f" {'—'*3} TOP TRADE IDEAS {'—'*3}\n")
         for i, idea in enumerate(ideas[:MAX_IDEAS], 1):
             s = idea["setup_data"]
             r = idea["recommendation"]
             a = idea["analysis"]
-            lines.append(f" #{i}  {s['ticker']} — {s['setup'].replace('_', ' ').title()}"
-                         f"  [Score: {idea['final_score']:.0f}]")
-            lines.append(f"     ${a['price']:.2f} | RSI {a['rsi']:.0f}"
-                         f" | Vol {a.get('volume_ratio', 0):.1f}x")
-            lines.append(f"     {s['detail']}")
+            t = s["ticker"]
+            rs_info = rs_data.get(t, {})
 
+            # Header
+            lines.append(f" #{i}  {t} — {s['setup'].replace('_', ' ').title()}"
+                         f"  [Score: {idea['final_score']:.0f}]")
+
+            # Price context
+            hv = a.get("hv_rank", 0)
+            adx_v = a.get("adx")
+            mfi_v = a.get("mfi")
+            price_line = f"     ${a['price']:.2f} | RSI {a['rsi']:.0f}"
+            if adx_v:
+                price_line += f" | ADX {adx_v:.0f}"
+            if mfi_v:
+                price_line += f" | MFI {mfi_v:.0f}"
+            price_line += f" | HV rank {hv:.0f}%"
+            lines.append(price_line)
+
+            # Relative strength
+            rs_vs_spy = rs_info.get("rs_vs_spy")
+            rs_vs_sec = rs_info.get("rs_vs_sector")
+            if rs_vs_spy or rs_vs_sec:
+                rs_parts = []
+                if rs_vs_spy:
+                    rs_parts.append(f"vs SPY: {rs_vs_spy['rs_change_pct']:+.1f}%")
+                if rs_vs_sec:
+                    rs_parts.append(f"vs sector: {rs_vs_sec['rs_change_pct']:+.1f}%")
+                lines.append(f"     Relative strength: {' | '.join(rs_parts)}")
+
+            # Thesis
+            lines.append(f"     THESIS: {s['detail']}")
+
+            # Trade recommendation
             if r.get("buy_strike") is not None or r.get("sell_strike") is not None:
-                sname = s["strategy"].replace("_", " ").title()
+                sname = s["strategy"].replace("_", " ").upper()
                 lines.append(f"     >> {sname}")
                 if s["strategy"] == "bull_call_spread":
                     lines.append(f"        BUY ${r['buy_strike']}C / SELL ${r['sell_strike']}C"
@@ -451,7 +675,6 @@ def format_brief(ideas: list[dict], account: dict, market: dict,
                                  f" | {r['expiration']} ({r['dte']} DTE)")
                     lines.append(f"        Credit: ~${r.get('estimated_credit', 0):.2f}"
                                  f" | Collateral: ${r.get('collateral', 0):.0f}")
-
                 if r.get("stop_loss"):
                     lines.append(f"        Stop: ${r['stop_loss']:.2f}"
                                  f" | Target: ${r.get('profit_target', 0):.2f}"
@@ -460,31 +683,39 @@ def format_brief(ideas: list[dict], account: dict, market: dict,
                 lines.append(f"     >> {r['note']}")
             lines.append("")
     else:
-        lines.append(" No setups detected today. Patience is a strategy.\n")
+        lines.append(" No high-conviction setups today. Patience is a strategy.")
+        lines.append(" (Setups require multi-factor confirmation: technicals + money flow")
+        lines.append("  + sector strength + relative strength alignment)\n")
 
-    # Watchlist notes
+    # Watchlist notes with richer context
     lines.append(f" {'—'*3} WATCHLIST NOTES {'—'*3}")
     noted = 0
     for ticker, a in sorted(all_analyses.items()):
         if any(ticker == idea["setup_data"]["ticker"] for idea in ideas):
             continue
         rsi_val = a.get("rsi")
-        trend = a.get("trend", {}).get("direction", "?")
         if rsi_val is None:
             continue
+        obv_sig = a.get("obv_signal", "")
+        macd_cross = a.get("macd_cross", "")
+        trend = a.get("trend", {}).get("direction", "?")
         note = ""
-        if rsi_val > 65:
-            note = f"RSI {rsi_val:.0f} — getting overbought, wait for pullback"
-        elif rsi_val < 38:
-            note = f"RSI {rsi_val:.0f} — approaching oversold, watch for bounce"
+        if obv_sig == "bullish_divergence" and rsi_val < 45:
+            note = f"RSI {rsi_val:.0f} — OBV bullish divergence, watch for reversal"
+        elif macd_cross == "bullish" and trend in ("uptrend", "strong_uptrend"):
+            note = f"RSI {rsi_val:.0f} — fresh MACD bullish cross, momentum building"
+        elif rsi_val > 68:
+            note = f"RSI {rsi_val:.0f} — overbought, wait for pullback"
+        elif rsi_val < 35:
+            note = f"RSI {rsi_val:.0f} — approaching oversold, on watch"
         elif trend in ("uptrend", "strong_uptrend"):
             ma20 = a.get("ma_20")
-            note = f"RSI {rsi_val:.0f}, {trend}" + (f", watch for dip to 20MA ${ma20:.0f}" if ma20 else "")
+            note = f"RSI {rsi_val:.0f}, {trend}" + (f", pullback entry at 20MA ${ma20:.0f}" if ma20 else "")
         else:
             continue
         lines.append(f"   {ticker}: {note}")
         noted += 1
-        if noted >= 6:
+        if noted >= 8:
             break
     lines.append("")
 
@@ -506,7 +737,7 @@ def format_brief(ideas: list[dict], account: dict, market: dict,
 
 def run_scan(tickers: list[str] | None = None, account_override: float | None = None,
              fast: bool = False) -> None:
-    """Run the full morning scan."""
+    """Run the full morning scan with sector rotation and relative strength."""
     print("\n  Initializing morning scan...\n")
 
     # Account state
@@ -528,17 +759,29 @@ def run_scan(tickers: list[str] | None = None, account_override: float | None = 
     if "QQQ" not in tickers:
         tickers.append("QQQ")
 
-    # Fetch data
+    # Fetch stock data
     print(f"  Fetching data for {len(tickers)} tickers...")
     price_data = fetch_all_data(tickers)
-    print(f"  Got data for {len(price_data)}/{len(tickers)} tickers.\n")
+    print(f"  Got data for {len(price_data)}/{len(tickers)} tickers.")
 
     if not price_data:
         print("  ERROR: No data retrieved. Check internet connection.")
         return
 
+    # Fetch sector data
+    print("  Analyzing sector rotation...")
+    sector_data = sector_analysis.fetch_sector_data()
+    sector_rankings = sector_analysis.sector_performance(sector_data) if sector_data else []
+    rotation = sector_analysis.identify_rotation(sector_rankings) if sector_rankings else {}
+    sector_report = sector_analysis.format_sector_report(sector_rankings, rotation) if sector_rankings else ""
+
+    # Build sector lookup for quick access
+    sector_lookup = {}
+    for r in sector_rankings:
+        sector_lookup[r["etf"]] = r
+
     # Run technical analysis
-    print("  Running technical analysis...")
+    print("  Running advanced technical analysis...")
     all_analyses = {}
     for t, df in price_data.items():
         try:
@@ -546,21 +789,30 @@ def run_scan(tickers: list[str] | None = None, account_override: float | None = 
         except Exception as e:
             print(f"    WARN: Analysis failed for {t}: {e}")
 
+    # Relative strength analysis
+    print("  Computing relative strength rankings...")
+    spy_df = price_data.get("SPY")
+    rs_data = sector_analysis.stock_relative_strength(price_data, sector_data, spy_df)
+
     # Market context
     market = {}
     for sym in ["SPY", "QQQ"]:
         if sym in all_analyses:
             market[sym] = all_analyses[sym]
 
-    # Detect setups
-    print("  Scanning for setups...")
+    # Detect setups with full context
+    print("  Scanning for multi-factor setups...")
     raw_ideas = []
     for t, a in all_analyses.items():
-        setups = detect_all(t, a, account["cash"])
+        rs = rs_data.get(t)
+        # Find this stock's sector ranking
+        sec_etf = sector_analysis.STOCK_TO_SECTOR.get(t)
+        sec_rank = sector_lookup.get(sec_etf)
+        setups = detect_all(t, a, account["cash"], rs, sec_rank)
         for s in setups:
             raw_ideas.append({"setup_data": s, "analysis": a})
 
-    print(f"  Found {len(raw_ideas)} raw setups.\n")
+    print(f"  Found {len(raw_ideas)} setups passing multi-factor filter.\n")
 
     # Fetch options chains for top candidates (unless --fast)
     raw_ideas.sort(key=lambda x: x["setup_data"]["score"], reverse=True)
@@ -569,6 +821,7 @@ def run_scan(tickers: list[str] | None = None, account_override: float | None = 
     for idea in top_ideas:
         t = idea["setup_data"]["ticker"]
         wl = screener.get_watchlist_entry(t)
+        rs = rs_data.get(t)
 
         if fast:
             rec = {"ticker": t, "has_chain": False,
@@ -582,13 +835,14 @@ def run_scan(tickers: list[str] | None = None, account_override: float | None = 
                                   chain, account["total"])
 
         idea["recommendation"] = rec
-        idea["final_score"] = score_idea(idea["setup_data"], rec, wl)
+        idea["final_score"] = score_idea(idea["setup_data"], rec, wl, rs)
 
     # Re-sort by final score
     top_ideas.sort(key=lambda x: x.get("final_score", 0), reverse=True)
 
     # Output
-    brief = format_brief(top_ideas, account, market, all_analyses)
+    brief = format_brief(top_ideas, account, market, all_analyses,
+                         sector_report, rs_data)
     print(brief)
 
 
