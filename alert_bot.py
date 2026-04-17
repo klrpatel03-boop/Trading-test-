@@ -274,7 +274,8 @@ def send_webhook(url: str, alerts: list[dict]) -> None:
     # Discord format
     payload = json.dumps({"content": text[:2000]}).encode("utf-8")
     req = urllib.request.Request(url, data=payload,
-                                 headers={"Content-Type": "application/json"})
+                                 headers={"Content-Type": "application/json",
+                                          "User-Agent": "TradingAlertBot/1.0"})
     try:
         urllib.request.urlopen(req)
     except urllib.error.URLError as e:
@@ -461,7 +462,8 @@ def run_loop(interval_min: int = 15, webhook_url: str | None = None,
                                 + "\n".join(f"  {t}" for t in new_disc[:10]))
                     payload = json.dumps({"content": disc_msg[:2000]}).encode("utf-8")
                     req = urllib.request.Request(webhook_url, data=payload,
-                                                 headers={"Content-Type": "application/json"})
+                                                 headers={"Content-Type": "application/json",
+                                                          "User-Agent": "TradingAlertBot/1.0"})
                     try:
                         urllib.request.urlopen(req)
                     except Exception:
