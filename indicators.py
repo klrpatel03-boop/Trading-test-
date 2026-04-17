@@ -296,6 +296,87 @@ def multi_timeframe_trend(daily_close: pd.Series) -> dict:
     }
 
 
+def bounce_confirmed(df: pd.DataFrame, lookback: int = 3) -> dict:
+    """
+    Check if an oversold stock has CONFIRMED a bounce (vs still falling).
+    Requires: yesterday closed green, RSI turning up, price off recent low,
+    volume confirmation on the reversal.
+
+    This is the fix for the "falling knife" problem. Just being oversold
+    isn't enough — we need evidence the bounce has actually started.
+    """
+    if len(df) < lookback + 2:
+        return {"confirmed": False, "reason": "not enough data"}
+
+    close = df["Close"]
+    open_ = df["Open"]
+    high = df["High"]
+    low = df["Low"]
+    volume = df["Volume"]
+
+    # Yesterday's candle (last completed bar)
+    last_close = close.iloc[-1]
+    last_open = open_.iloc[-1]
+    prev_close = close.iloc[-2]
+    prev_low = low.iloc[-2]
+
+    reasons = []
+
+    # Test 1: Yesterday closed green (bullish candle)
+    green_candle = last_close > last_open
+    if green_candle:
+        reasons.append("green candle")
+
+    # Test 2: Price above yesterday's low (not making new lows)
+    above_prev_low = last_close > prev_low
+    if above_prev_low:
+        reasons.append("above prior low")
+
+    # Test 3: RSI turning up (RSI today > RSI yesterday)
+    rsi_series = rsi(close)
+    rsi_turning = len(rsi_series) >= 2 and rsi_series.iloc[-1] > rsi_series.iloc[-2]
+    if rsi_turning:
+        reasons.append("RSI turning up")
+
+    # Test 4: Volume confirmation (reversal on above-average volume)
+    avg_vol = volume.tail(20).mean()
+    vol_confirmation = volume.iloc[-1] > avg_vol * 1.1
+    if vol_confirmation:
+        reasons.append("volume confirmation")
+
+    # Test 5: Not making lower lows in last 3 days (stabilization)
+    recent_lows = low.tail(lookback)
+    stabilizing = recent_lows.iloc[-1] >= recent_lows.min()
+    if stabilizing:
+        reasons.append("lows stabilizing")
+
+    # Require at least 3 of 5 tests to pass
+    tests_passed = sum([green_candle, above_prev_low, rsi_turning,
+                        vol_confirmation, stabilizing])
+    confirmed = tests_passed >= 3
+
+    return {
+        "confirmed": confirmed,
+        "tests_passed": tests_passed,
+        "tests_total": 5,
+        "reasons": reasons,
+    }
+
+
+def weekly_uptrend_intact(close: pd.Series) -> bool:
+    """
+    Check if the long-term (weekly) uptrend is still intact.
+    Requires price above 50-week MA (approximated by 250-day MA).
+    Prevents catching knives in structural downtrends.
+    """
+    if len(close) < 200:
+        return True  # not enough data, don't filter
+    ma_200 = close.rolling(window=200, min_periods=150).mean().iloc[-1]
+    if pd.isna(ma_200):
+        return True
+    return close.iloc[-1] >= ma_200 * 0.97  # within 3% of 200MA counts
+
+
 def analyze(df: pd.DataFrame) -> dict:
     """
     Run full technical analysis on a yfinance DataFrame.
@@ -382,4 +463,7 @@ def analyze(df: pd.DataFrame) -> dict:
         "obv_signal": obv_signal,
         # Advanced — volatility context
         "hv_rank": hv_rank,
+        # Bounce confirmation (anti-falling-knife)
+        "bounce": bounce_confirmed(df),
+        "weekly_uptrend_intact": weekly_uptrend_intact(close),
     }

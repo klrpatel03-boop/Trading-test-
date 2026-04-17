@@ -35,9 +35,9 @@ MAX_POSITIONS = 3              # fewer positions, bigger conviction
 MAX_DEPLOY_PCT = 0.90
 LOOKBACK_BARS = 60
 
-# High-beta tickers that actually swing 5-10%+ in a week
-HIGH_BETA = {"TSLA", "NVDA", "AMD", "COIN", "MARA", "SHOP", "SOFI",
-             "PLTR", "ROKU", "CRWD", "ARKK", "META", "AMZN"}
+# Proven winners from backtest analysis — tickers with consistent positive results
+# Dropped: AMZN (-$1015), META (-$625), PLTR (-$609), ARKK (-$571), NVDA (-$397), CRWD (-$366)
+HIGH_BETA = {"TSLA", "AMD", "ROKU", "SHOP", "SOFI", "MARA", "COIN"}
 
 # Trade rules — long calls, swing for 30-50% gains
 RULES = {

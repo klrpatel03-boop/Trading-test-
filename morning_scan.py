@@ -231,6 +231,19 @@ def detect_oversold_bounce(ticker: str, a: dict, rs: dict | None, sector_rank: d
     if rsi_val is None or rsi_val > 38:
         return None
 
+    # HARD REQUIREMENT 1: Weekly uptrend intact (no catching knives in downtrends)
+    if not a.get("weekly_uptrend_intact", True):
+        return None
+
+    # HARD REQUIREMENT 2: Bounce must be CONFIRMED (green candle + RSI turning + volume)
+    bounce = a.get("bounce", {})
+    if not bounce.get("confirmed", False):
+        return None
+
+    # HARD REQUIREMENT 3: Sector not in freefall
+    if sector_rank and sector_rank.get("momentum_score", 0) < -2:
+        return None
+
     s1 = sr.get("support_1", 0)
     near_support = ma_50 and abs(price - ma_50) / ma_50 < 0.04
     near_sr = s1 > 0 and abs(price - s1) / s1 < 0.04
@@ -332,6 +345,25 @@ def detect_momentum_pullback(ticker: str, a: dict, rs: dict | None, sector_rank:
     if dist_20 is None or dist_50 is None:
         return None
     if not (-4.0 <= dist_20 <= 2.0 and dist_50 > 0):
+        return None
+
+    # HARD REQUIREMENT 1: Weekly uptrend intact
+    if not a.get("weekly_uptrend_intact", True):
+        return None
+
+    # HARD REQUIREMENT 2: Bounce from pullback CONFIRMED (not still falling)
+    bounce = a.get("bounce", {})
+    if not bounce.get("confirmed", False):
+        return None
+
+    # HARD REQUIREMENT 3: MACD histogram turning positive (momentum resuming)
+    macd_c = a.get("macd_cross", "none")
+    macd_h = a.get("macd_histogram", 0) or 0
+    if macd_c != "bullish" and macd_h <= 0:
+        return None
+
+    # HARD REQUIREMENT 4: Sector must be positive (no fighting the tape)
+    if sector_rank and sector_rank.get("momentum_score", 0) < 0:
         return None
 
     score = 40
