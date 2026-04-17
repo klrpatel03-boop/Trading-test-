@@ -560,9 +560,25 @@ def main():
     parser.add_argument("--months", type=int, default=12, help="Months of history (default 12)")
     parser.add_argument("--ticker", nargs="+", default=None, help="Specific tickers")
     parser.add_argument("--verbose", action="store_true", help="Show every trade")
+    parser.add_argument("--include-discovery", action="store_true",
+                        help="Include stocks from today's discovery scan (stock_discovery.py)")
     args = parser.parse_args()
 
-    tickers = args.ticker or screener.get_tickers()
+    if args.ticker:
+        tickers = args.ticker
+    else:
+        tickers = screener.get_tickers()
+        if args.include_discovery:
+            try:
+                import stock_discovery
+                disc = stock_discovery.load_discovery_data()
+                disc_tickers = disc.get("discovery_tickers", [])
+                # Add discovered stocks to HIGH_BETA set so they get traded in backtest
+                HIGH_BETA.update(disc_tickers)
+                tickers = list(set(tickers + disc_tickers))
+                print(f"  Including {len(disc_tickers)} discovered stocks: {', '.join(disc_tickers)}")
+            except Exception as e:
+                print(f"  WARN: Could not load discovery data: {e}")
     results = run_backtest(tickers, months=args.months, verbose=args.verbose)
     if results:
         report = format_report(results, args.months)
