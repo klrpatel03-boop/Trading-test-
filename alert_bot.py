@@ -30,9 +30,11 @@ import indicators
 ALERT_LOG = Path(__file__).parent / "alerts.json"
 ET = ZoneInfo("America/New_York")
 
-# --- Watchlist: only high-beta stocks that swing hard enough --- #
+import stock_discovery
 
-WATCHLIST = {
+# --- Watchlist: core proven winners + dynamic discovery --- #
+
+CORE_WATCHLIST = {
     "AMD":  {"oversold_rsi": 40, "20ma_watch": True, "tier": "A"},
     "TSLA": {"oversold_rsi": 40, "20ma_watch": True, "tier": "A"},
     "NVDA": {"oversold_rsi": 40, "20ma_watch": True, "tier": "A"},
@@ -47,6 +49,30 @@ WATCHLIST = {
     "ARKK": {"oversold_rsi": 35, "20ma_watch": True, "tier": "B"},
 }
 
+
+def get_active_watchlist() -> dict:
+    """Build watchlist from core + daily discovery."""
+    watchlist = dict(CORE_WATCHLIST)
+    try:
+        data = stock_discovery.load_discovery_data()
+        for ticker in data.get("discovery_tickers", []):
+            if ticker not in watchlist:
+                watchlist[ticker] = {
+                    "oversold_rsi": 38,
+                    "20ma_watch": True,
+                    "tier": "D",
+                }
+        for ticker in data.get("proven_tickers", []):
+            if ticker not in watchlist:
+                watchlist[ticker] = {
+                    "oversold_rsi": 38,
+                    "20ma_watch": True,
+                    "tier": "P",
+                }
+    except Exception:
+        pass
+    return watchlist
+
 # SPY regime thresholds
 SPY_OVERBOUGHT = 72
 SPY_COOLDOWN = 50
@@ -54,7 +80,7 @@ SPY_COOLDOWN = 50
 
 # --- Alert conditions --- #
 
-def check_alerts(price_data: dict, spy_df=None) -> list[dict]:
+def check_alerts(price_data: dict, spy_df=None, watchlist: dict | None = None) -> list[dict]:
     """Run all alert checks across the watchlist. Returns list of fired alerts."""
     alerts = []
     now = datetime.now(ET).strftime("%Y-%m-%d %H:%M")
@@ -88,7 +114,8 @@ def check_alerts(price_data: dict, spy_df=None) -> list[dict]:
         else:
             spy_status = "neutral"
 
-    for ticker, config in WATCHLIST.items():
+    wl = watchlist or get_active_watchlist()
+    for ticker, config in wl.items():
         df = price_data.get(ticker)
         if df is None or len(df) < 50:
             continue
@@ -368,12 +395,13 @@ def fetch_data(tickers: list[str]) -> dict:
         return {}
 
 
-def run_once(webhook_url: str | None = None) -> list[dict]:
+def run_once(webhook_url: str | None = None, watchlist: dict | None = None) -> list[dict]:
     """Run a single scan cycle."""
+    wl = watchlist or get_active_watchlist()
     now_et = datetime.now(ET).strftime("%H:%M ET")
-    print(f"\n  [{now_et}] Scanning {len(WATCHLIST)} stocks...")
+    print(f"\n  [{now_et}] Scanning {len(wl)} stocks (core + discovery)...")
 
-    tickers = list(WATCHLIST.keys())
+    tickers = list(wl.keys())
     data = fetch_data(tickers)
 
     if not data:
@@ -381,7 +409,7 @@ def run_once(webhook_url: str | None = None) -> list[dict]:
         return []
 
     spy_df = data.get("SPY")
-    alerts = check_alerts(data, spy_df)
+    alerts = check_alerts(data, spy_df, wl)
 
     if alerts:
         print_alerts(alerts)
@@ -394,34 +422,65 @@ def run_once(webhook_url: str | None = None) -> list[dict]:
     return alerts
 
 
-def run_loop(interval_min: int = 15, webhook_url: str | None = None) -> None:
+def run_loop(interval_min: int = 15, webhook_url: str | None = None,
+             no_discovery: bool = False) -> None:
     """Run continuously during market hours."""
+    wl = get_active_watchlist()
     print(f"\n{'='*60}")
     print(f" ALERT BOT STARTED")
-    print(f" Monitoring: {', '.join(WATCHLIST.keys())}")
+    print(f" Monitoring: {len(wl)} stocks (core + discovery)")
+    print(f" Core: {', '.join(CORE_WATCHLIST.keys())}")
+    disc = [t for t in wl if t not in CORE_WATCHLIST]
+    if disc:
+        print(f" Discovery: {', '.join(disc)}")
     print(f" Interval: every {interval_min} minutes")
     print(f" Webhook: {'configured' if webhook_url else 'none (console only)'}")
-    print(f" Market hours: 9:30 AM - 4:00 PM ET")
+    print(f" Discovery: {'disabled' if no_discovery else 'enabled (7AM ET daily)'}")
     print(f"{'='*60}")
 
     last_alerts: dict[str, str] = {}
+    last_discovery_date = None
 
     while True:
-        if is_market_hours() or is_premarket():
-            alerts = run_once(webhook_url=None)  # don't send webhook yet
+        now_et = datetime.now(ET)
 
-            # Dedup and send only new alerts
+        # Pre-market discovery scan at 7AM ET (once per day)
+        if (not no_discovery and is_premarket()
+                and now_et.hour >= 7 and last_discovery_date != now_et.date()):
+            print(f"\n  [{now_et.strftime('%H:%M ET')}] Running pre-market discovery scan...")
+            try:
+                result = stock_discovery.build_dynamic_watchlist(quick=False)
+                last_discovery_date = now_et.date()
+                wl = get_active_watchlist()
+                new_disc = result.get("discovery_tickers", [])
+                print(f"  Discovery complete. Now monitoring {len(wl)} stocks.")
+                if webhook_url and new_disc:
+                    disc_msg = (f"**DISCOVERY SCAN — {now_et.strftime('%H:%M ET')}**\n"
+                                f"Scanned {result['scan_stats']['total_scanned']} stocks, "
+                                f"found {len(new_disc)} new candidates:\n"
+                                + "\n".join(f"  {t}" for t in new_disc[:10]))
+                    payload = json.dumps({"content": disc_msg[:2000]}).encode("utf-8")
+                    req = urllib.request.Request(webhook_url, data=payload,
+                                                 headers={"Content-Type": "application/json"})
+                    try:
+                        urllib.request.urlopen(req)
+                    except Exception:
+                        pass
+            except Exception as e:
+                print(f"  Discovery scan failed: {e}")
+
+        if is_market_hours() or is_premarket():
+            wl = get_active_watchlist()
+            alerts = run_once(webhook_url=None, watchlist=wl)
+
             new_alerts = dedup_alerts(alerts, last_alerts)
             if new_alerts and webhook_url:
                 send_webhook(webhook_url, new_alerts)
 
-            # Sleep until next scan
             print(f"  Next scan in {interval_min} minutes...")
             time.sleep(interval_min * 60)
         else:
-            now_et = datetime.now(ET).strftime("%H:%M ET")
-            print(f"  [{now_et}] Market closed. Waiting for pre-market (7 AM ET)...")
-            # Sleep 30 min and check again
+            print(f"  [{now_et.strftime('%H:%M ET')}] Market closed. Waiting for pre-market (7 AM ET)...")
             time.sleep(1800)
 
 
@@ -435,12 +494,16 @@ def main():
                         help="Minutes between scans (default 15)")
     parser.add_argument("--once", action="store_true",
                         help="Run one scan and exit")
+    parser.add_argument("--no-discovery", action="store_true",
+                        help="Use only core watchlist, skip discovery scanner")
     args = parser.parse_args()
 
     if args.once:
-        run_once(webhook_url=args.webhook)
+        wl = CORE_WATCHLIST if args.no_discovery else get_active_watchlist()
+        run_once(webhook_url=args.webhook, watchlist=wl)
     else:
-        run_loop(interval_min=args.interval, webhook_url=args.webhook)
+        run_loop(interval_min=args.interval, webhook_url=args.webhook,
+                 no_discovery=args.no_discovery)
 
 
 if __name__ == "__main__":

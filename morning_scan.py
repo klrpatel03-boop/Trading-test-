@@ -23,6 +23,7 @@ import indicators
 import screener
 import portfolio
 import sector_analysis
+import stock_discovery
 
 # --- Config --- #
 
@@ -751,9 +752,17 @@ def run_scan(tickers: list[str] | None = None, account_override: float | None = 
         account["total"] = account_override
         account["cash"] = account_override
 
-    # Tickers
+    # Tickers: core + dynamic discovery
     if tickers is None:
-        tickers = screener.get_tickers()
+        core_tickers = screener.get_tickers()
+        try:
+            disc_data = stock_discovery.load_discovery_data()
+            disc_tickers = disc_data.get("discovery_tickers", [])
+            if disc_tickers:
+                print(f"  Discovery watchlist: {len(disc_tickers)} stocks from last scan")
+        except Exception:
+            disc_tickers = []
+        tickers = list(dict.fromkeys(core_tickers + disc_tickers))
     if "SPY" not in tickers:
         tickers.append("SPY")
     if "QQQ" not in tickers:
@@ -807,6 +816,11 @@ def run_scan(tickers: list[str] | None = None, account_override: float | None = 
         rs = rs_data.get(t)
         # Find this stock's sector ranking
         sec_etf = sector_analysis.STOCK_TO_SECTOR.get(t)
+        if sec_etf is None:
+            disc_data = stock_discovery.load_discovery_data()
+            sec_etf = disc_data.get("sector_map", {}).get(t)
+            if sec_etf:
+                sector_analysis.STOCK_TO_SECTOR[t] = sec_etf
         sec_rank = sector_lookup.get(sec_etf)
         setups = detect_all(t, a, account["cash"], rs, sec_rank)
         for s in setups:
