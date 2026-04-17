@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 portfolio_data.json
 trade_journal.json
+alerts.json
+alert_bot.log
