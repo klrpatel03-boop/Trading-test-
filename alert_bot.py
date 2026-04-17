@@ -172,6 +172,11 @@ def check_alerts(price_data: dict, spy_df=None, watchlist: dict | None = None) -
                 "rsi": rsi,
                 "message": f"{ticker} ${price:.2f} OVERSOLD — {' | '.join(factors)}",
                 "factors": factors,
+                "order_details": (
+                    f"BUY ATM long call, 30-45 DTE | Limit @ mid | TIF: DAY\n"
+                    f"           After fill: set GTC limit sell at +40% (profit target)\n"
+                    f"           Price alert: {ticker} stock @ 5% below entry = manual exit (no hard stop on option)"
+                ) if priority == "ENTRY" else None,
                 "action": f"BUY ATM call, 30 DTE, risk $120" if priority == "ENTRY" else "Watch for MACD bullish cross to confirm",
             })
 
@@ -186,6 +191,11 @@ def check_alerts(price_data: dict, spy_df=None, watchlist: dict | None = None) -
                 "rsi": rsi,
                 "message": f"{ticker} ${price:.2f} MACD BULLISH CROSS — RSI {rsi:.0f}, momentum turning up",
                 "action": f"BUY ATM call, 30 DTE. Entry confirmation signal.",
+                "order_details": (
+                    f"BUY ATM long call, 30-45 DTE | Limit @ mid | TIF: DAY\n"
+                    f"           After fill: set GTC limit sell at +40% (profit target)\n"
+                    f"           Price alert: {ticker} stock @ 5% below entry = manual exit"
+                ) if rsi < 45 else None,
             })
 
         # 3. Price at 20MA support in an uptrend
@@ -262,7 +272,10 @@ def send_webhook(url: str, alerts: list[dict]) -> None:
         lines.append("**ENTRY SIGNALS:**")
         for a in entry_alerts:
             lines.append(f"  {a['message']}")
-            lines.append(f"  >> {a.get('action', '')}\n")
+            lines.append(f"  >> {a.get('action', '')}")
+            if a.get("order_details"):
+                lines.append(f"  `{a['order_details']}`")
+            lines.append("")
 
     if watch_alerts:
         lines.append("**ON WATCH:**")
@@ -298,6 +311,8 @@ def print_alerts(alerts: list[dict]) -> None:
         for a in entries:
             print(f"  >> {a['message']}")
             print(f"     ACTION: {a.get('action', '')}")
+            if a.get("order_details"):
+                print(f"     ORDER:  {a['order_details']}")
         print()
 
     if watches:
