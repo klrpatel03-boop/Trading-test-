@@ -353,7 +353,7 @@ def bounce_confirmed(df: pd.DataFrame, lookback: int = 3) -> dict:
     # Require at least 3 of 5 tests to pass
     tests_passed = sum([green_candle, above_prev_low, rsi_turning,
                         vol_confirmation, stabilizing])
-    confirmed = tests_passed >= 3
+    confirmed = tests_passed >= 2
 
     return {
         "confirmed": confirmed,

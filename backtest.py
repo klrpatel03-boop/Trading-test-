@@ -29,7 +29,7 @@ import sector_analysis
 
 # --- Config --- #
 
-MAX_RISK_PCT = 0.10
+MAX_RISK_PCT = 0.15
 STARTING_CAPITAL = 1200.00
 MAX_POSITIONS = 3              # fewer positions, bigger conviction
 MAX_DEPLOY_PCT = 0.90
