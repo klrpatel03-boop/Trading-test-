@@ -11,6 +11,8 @@ Usage:
   python morning_scan.py --account 1500
 """
 
+from __future__ import annotations
+
 import argparse
 import sys
 import time

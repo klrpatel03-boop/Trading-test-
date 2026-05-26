@@ -6,6 +6,8 @@ with technical setup checklists and position sizing calculators.
 No external dependencies — uses only the Python standard library.
 """
 
+from __future__ import annotations
+
 import sys
 from datetime import date
 

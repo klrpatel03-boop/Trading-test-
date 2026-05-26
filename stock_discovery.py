@@ -11,6 +11,8 @@ Usage:
   python stock_discovery.py --show    # display cached watchlist
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import sys

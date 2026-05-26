@@ -14,6 +14,8 @@ Set up as a background service:
   nohup python alert_bot.py --webhook <URL> > alert_bot.log 2>&1 &
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import sys

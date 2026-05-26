@@ -14,6 +14,8 @@ Usage:
   python backtest.py --verbose          # show every trade
 """
 
+from __future__ import annotations
+
 import argparse
 import sys
 from datetime import date, timedelta

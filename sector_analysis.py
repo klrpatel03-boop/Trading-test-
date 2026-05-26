@@ -5,6 +5,8 @@ Tracks money flows across market sectors, identifies hot/cold sectors,
 and ranks stocks by relative performance vs their sector and SPY.
 """
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import yfinance as yf

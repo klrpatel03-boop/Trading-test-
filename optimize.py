@@ -4,6 +4,8 @@ Systematic strategy optimizer — runs 10 hypothesis-driven iterations
 to find the optimal trading configuration, then validates with walk-forward testing.
 """
 
+from __future__ import annotations
+
 import copy
 import json
 import sys
