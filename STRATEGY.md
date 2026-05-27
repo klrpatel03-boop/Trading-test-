@@ -290,18 +290,27 @@ Sell spreads to collect premium when you expect a stock to stay above (bull put 
 
 ---
 
-## Account Growth Targets
+## Account Growth Expectations
 
-With aggressive options trading and proper risk management:
+**Read this honestly.** Most retail options traders lose money over time. You are betting on direction *and* timing, and fees plus bid-ask spreads work against you on every trade. Any plan promising 10%+ per month is selling a fantasy — sustaining that would make you one of the best traders alive (Warren Buffett compounds at ~20% per *year*).
 
-| Milestone     | Monthly Return | Timeline (Approx)     | Balance    |
-|---------------|---------------|-----------------------|------------|
-| Phase 1       | 10-15%        | Months 1-3            | $1,200 → $1,800 |
-| Phase 2       | 10-15%        | Months 4-6            | $1,800 → $2,700 |
-| Phase 3       | 8-12%         | Months 7-12           | $2,700 → $5,000+ |
-| Phase 4       | 8-12%         | Year 2                | $5,000 → $15,000+ |
+### The real goal for your first 3 months
 
-> **Reality check**: These targets assume consistent execution and favorable market conditions. Options trading involves substantial risk. You WILL have losing trades and drawdown periods. The goal is to keep losers small and let winners run.
+Forget dollar targets. Success early on is:
+
+1. **Don't lose more than ~20% of the account** while you learn.
+2. **Honor every stop** — cut losers at -50% of premium, never ride one to zero.
+3. **Log 15-20 trades** so the journal shows *your* real win rate, not a hoped-for one.
+
+### Realistic returns once you have a track record
+
+| Scenario                        | Monthly        | Notes                                      |
+|---------------------------------|----------------|--------------------------------------------|
+| Genuinely skilled + disciplined | +2-4%          | Hard to sustain; this is a *good* outcome  |
+| Careful beginner                | break-even to +1-2% | Expect this while learning            |
+| Over-sizing / chasing returns   | negative       | The most common path — avoid it            |
+
+> **Reality check**: A skilled trader at +3%/month roughly doubles the account in about two years — and that already beats most professionals. Compounding is powerful but slow on a small base, so the dollar gains feel tiny at first. The traders who survive accept that and never over-bet to speed it up. Keep losers small, let winners run, and let the account grow at the pace it actually grows.
 
 ### Scaling Rules
 
