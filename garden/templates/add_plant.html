@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Add plant{% endblock %}
+{% block content %}
+
+<header class="page-head"><h1>Add a plant</h1></header>
+
+<form class="card form form-wide" method="post" action="{{ url_for('add_plant') }}">
+  <label>Name <input type="text" name="name" placeholder="Cherry tomatoes" required autofocus></label>
+  <label>Species <input type="text" name="species" placeholder="Solanum lycopersicum"></label>
+  <div class="row">
+    <label class="grow">Bed / location <input type="text" name="bed" placeholder="Raised bed 1, east end"></label>
+    <label>Sun
+      <select name="sun">
+        {% for s in sun_options %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+      </select>
+    </label>
+  </div>
+  <div class="row">
+    <label>Water every (days)
+      <input type="number" name="water_interval_days" min="1" value="3">
+    </label>
+    <label>Planted <input type="date" name="planted_date" value="{{ today }}"></label>
+  </div>
+  <label>Notes <textarea name="notes" rows="2" placeholder="Variety, where seed came from, anything to remember…"></textarea></label>
+  <div class="row">
+    <button class="btn" type="submit">Add plant</button>
+    <a class="btn-ghost" href="{{ url_for('plants') }}">Cancel</a>
+  </div>
+</form>
+
+<p class="hint muted">Tip: typical intervals — seedlings/containers ~1–2 days, established beds ~3–4 days, drought-tolerant/natives ~7+ days. The app auto-tightens this in heat and skips it when rain is coming.</p>
+
+{% endblock %}

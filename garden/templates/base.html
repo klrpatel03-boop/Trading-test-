@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Garden{% endblock %} · Garden Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <a class="brand" href="{{ url_for('index') }}">🌱 Garden</a>
+    <div class="nav-links">
+      <a href="{{ url_for('index') }}">Today</a>
+      <a href="{{ url_for('plants') }}">Plants</a>
+      <a href="{{ url_for('journal') }}">Journal</a>
+      <a href="{{ url_for('settings') }}">Settings</a>
+      <a class="btn-sm" href="{{ url_for('add_plant') }}">+ Add plant</a>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">Watered by weather, grown by you.</footer>
+</body>
+</html>

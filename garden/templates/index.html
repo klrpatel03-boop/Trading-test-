@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Today{% endblock %}
+{% block content %}
+
+<header class="page-head">
+  <h1>{{ settings.place_name }}</h1>
+  <span class="muted">{{ today }}</span>
+</header>
+
+{# ---- Weather strip ---- #}
+{% if weather %}
+<section class="weather-strip">
+  {% for d in weather.days %}
+  <div class="wx {% if loop.first %}wx-today{% endif %}">
+    <div class="wx-day">{% if loop.first %}Today{% else %}{{ d.date[5:] }}{% endif %}</div>
+    <div class="wx-temp">{{ d.temp_max|round|int }}°/{{ d.temp_min|round|int }}°</div>
+    <div class="wx-desc">{{ d.desc }}</div>
+    <div class="wx-rain {% if d.precip_in >= 0.25 %}wx-wet{% endif %}">
+      💧 {{ d.precip_in }}in · {{ d.precip_prob }}%
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% else %}
+<section class="callout">Weather unavailable (offline or location unset). Watering falls back to fixed schedules.</section>
+{% endif %}
+
+{# ---- Water-today list ---- #}
+<section>
+  <h2>Needs water today <span class="count">{{ to_water|length }}</span></h2>
+  {% if to_water %}
+    <div class="water-list">
+    {% for p in to_water %}
+      <div class="water-card urgency-{{ p.status.urgency }}">
+        <div class="wc-main">
+          <a class="wc-name" href="{{ url_for('plant_detail', plant_id=p.id) }}">{{ p.name }}</a>
+          <span class="wc-bed">{{ p.bed or p.species }}</span>
+          <div class="wc-status">{{ p.status.label }}{% if p.status.note %} · <span class="muted">{{ p.status.note }}</span>{% endif %}</div>
+        </div>
+        <form method="post" action="{{ url_for('water_plant', plant_id=p.id) }}">
+          <input type="hidden" name="next" value="{{ url_for('index') }}">
+          <button class="btn-water" type="submit">💧 Watered</button>
+        </form>
+      </div>
+    {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty">🎉 Nothing to water today. The garden's happy{% if weather %} (or rain's got it covered){% endif %}.</p>
+  {% endif %}
+</section>
+
+{# ---- Everything else at a glance ---- #}
+{% set resting = plants | rejectattr('status.state', 'in', ['due','overdue','unknown']) | list %}
+{% if resting %}
+<section>
+  <h2 class="muted-head">Resting</h2>
+  <div class="chip-row">
+    {% for p in resting %}
+      <a class="chip state-{{ p.status.state }}" href="{{ url_for('plant_detail', plant_id=p.id) }}">
+        {{ p.name }} <span class="chip-status">{{ p.status.label }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if not plants %}
+<section class="callout">
+  No plants yet. <a href="{{ url_for('add_plant') }}">Add your first bed →</a>
+</section>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ plant.name }}{% endblock %}
+{% block content %}
+
+<header class="page-head">
+  <h1>{{ plant.name }}</h1>
+  <span class="dot state-{{ status.state }}"></span>
+</header>
+
+<section class="detail-status urgency-{{ status.urgency }}">
+  <strong>{{ status.label }}</strong>
+  {% if status.note %}<div class="muted">{{ status.note }}</div>{% endif %}
+  <div class="muted small">
+    Base every {{ status.base_interval }}d · weather-adjusted to {{ status.effective_interval }}d
+    {% if status.days_since is not none %} · last watered {{ status.days_since }}d ago{% else %} · never logged{% endif %}
+  </div>
+  <form method="post" action="{{ url_for('water_plant', plant_id=plant.id) }}" class="inline-form">
+    <input type="hidden" name="next" value="{{ url_for('plant_detail', plant_id=plant.id) }}">
+    <input type="date" name="when" value="{{ today }}">
+    <button class="btn-water" type="submit">💧 Log watering</button>
+  </form>
+</section>
+
+<div class="two-col">
+  {# ---- Journal ---- #}
+  <section>
+    <h2>Photo journal</h2>
+    <form class="card form" method="post" enctype="multipart/form-data"
+          action="{{ url_for('add_journal', plant_id=plant.id) }}">
+      <div class="row">
+        <label>Date<input type="date" name="date" value="{{ today }}"></label>
+        <label class="grow">Note
+          <input type="text" name="note" placeholder="First buds! / leaves yellowing / repotted…">
+        </label>
+      </div>
+      <label>Photo <input type="file" name="photo" accept="image/*"></label>
+      <button class="btn" type="submit">Add entry</button>
+    </form>
+
+    {% if entries %}
+    <div class="timeline">
+      {% for e in entries %}
+      <div class="tl-entry">
+        <div class="tl-date">{{ e.date }}</div>
+        {% if e.photo %}
+        <a href="{{ url_for('photo', filename=e.photo) }}" target="_blank">
+          <img class="tl-photo" src="{{ url_for('photo', filename=e.photo) }}" alt="">
+        </a>
+        {% endif %}
+        {% if e.note %}<div class="tl-note">{{ e.note }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No journal entries yet. Snap a photo to start the timeline.</p>
+    {% endif %}
+  </section>
+
+  {# ---- Edit ---- #}
+  <section>
+    <h2>Details</h2>
+    <form class="card form" method="post" action="{{ url_for('edit_plant', plant_id=plant.id) }}">
+      <label>Name<input type="text" name="name" value="{{ plant.name }}" required></label>
+      <label>Species<input type="text" name="species" value="{{ plant.species }}"></label>
+      <label>Bed / location<input type="text" name="bed" value="{{ plant.bed }}"></label>
+      <label>Sun
+        <select name="sun">
+          {% for s in sun_options %}
+          <option value="{{ s }}" {% if s == plant.sun %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Water every (days)
+        <input type="number" name="water_interval_days" min="1" value="{{ plant.water_interval_days }}">
+      </label>
+      <label>Planted<input type="date" name="planted_date" value="{{ plant.planted_date }}"></label>
+      <label>Notes<textarea name="notes" rows="2">{{ plant.notes }}</textarea></label>
+      <button class="btn" type="submit">Save changes</button>
+    </form>
+
+    <form method="post" action="{{ url_for('remove_plant', plant_id=plant.id) }}"
+          onsubmit="return confirm('Remove {{ plant.name }} and its journal?');">
+      <button class="btn-danger" type="submit">Delete plant</button>
+    </form>
+  </section>
+</div>
+
+{% endblock %}

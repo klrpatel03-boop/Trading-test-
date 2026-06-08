@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Journal{% endblock %}
+{% block content %}
+
+<header class="page-head"><h1>Garden journal</h1></header>
+
+{% if entries %}
+<div class="gallery">
+  {% for e in entries %}
+  <div class="g-card">
+    {% if e.photo %}
+    <a href="{{ url_for('photo', filename=e.photo) }}" target="_blank">
+      <img src="{{ url_for('photo', filename=e.photo) }}" alt="">
+    </a>
+    {% else %}
+    <div class="g-noimg">📝</div>
+    {% endif %}
+    <div class="g-meta">
+      <a href="{{ url_for('plant_detail', plant_id=e.plant_id) }}">{{ names.get(e.plant_id, "Unknown") }}</a>
+      <span class="muted small">{{ e.date }}</span>
+    </div>
+    {% if e.note %}<div class="g-note">{{ e.note }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="empty">No journal entries yet. Open any plant to add a photo and note.</p>
+{% endif %}
+
+{% endblock %}

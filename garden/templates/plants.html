@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Plants{% endblock %}
+{% block content %}
+
+<header class="page-head">
+  <h1>Plants <span class="count">{{ plants|length }}</span></h1>
+  <a class="btn-sm" href="{{ url_for('add_plant') }}">+ Add plant</a>
+</header>
+
+{% if plants %}
+<div class="plant-grid">
+  {% for p in plants %}
+  <div class="plant-card">
+    <div class="pc-head">
+      <a class="pc-name" href="{{ url_for('plant_detail', plant_id=p.id) }}">{{ p.name }}</a>
+      <span class="dot state-{{ p.status.state }}" title="{{ p.status.label }}"></span>
+    </div>
+    <div class="pc-meta">{{ p.species or "—" }}{% if p.bed %} · {{ p.bed }}{% endif %}</div>
+    <div class="pc-meta muted">☀️ {{ p.sun }} · every {{ p.water_interval_days }}d</div>
+    <div class="pc-status">{{ p.status.label }}</div>
+    <form method="post" action="{{ url_for('water_plant', plant_id=p.id) }}">
+      <input type="hidden" name="next" value="{{ url_for('plants') }}">
+      <button class="btn-water btn-water-sm" type="submit">💧 Mark watered</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="empty">No plants yet. <a href="{{ url_for('add_plant') }}">Add one →</a></p>
+{% endif %}
+
+{% endblock %}
