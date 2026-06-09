@@ -1,0 +1,20 @@
+/* ============================================================================
+ * Anchor — print.css
+ * When the app itself is printed, hide chrome and show only the content. (The
+ * dedicated one-page printable lives in cheatsheet.html with its own styles.)
+ * ==========================================================================*/
+@media print {
+  .topbar, .bottomnav, .daynav, .timeline-actions, .icon-btn,
+  .modal-overlay, .toast, .fav-btn, .section-head-actions, .nav-item {
+    display: none !important;
+  }
+  body, .app-shell { background: #fff !important; color: #000 !important; }
+  #main { overflow: visible !important; padding: 0 !important; }
+  .view { max-width: 100% !important; padding: 0 !important; }
+  .card, .meal-card, .plan-day, .tier-card, .store-card {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  a[href]::after { content: ""; }
+}

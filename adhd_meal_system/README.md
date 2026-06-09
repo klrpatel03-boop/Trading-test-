@@ -81,7 +81,16 @@ This system runs on two things working together:
 | `06-tracking.md` | The *minimum* tracking that actually helps. |
 | `07-prep-system.md` | Batch-cooking system that turns cooking-love into a week of easy meals. |
 | `08-budget-and-cost.md` | **The money model.** Cheapest protein/fiber per dollar, Andover store strategy, monthly budget. |
-| `meal_planner.py` | Runnable tool: today's plan, budget, groceries, targets, low-effort swaps. |
+| `09-recipes-and-cookbooks.md` | **Trusted online cookbooks** (Budget Bytes et al.) + tested recipe links for the rotation. |
+| `10-using-the-app.md` | How to run the app + install it on your iPhone (Add to Home Screen / GitHub Pages). |
+| `11-sample-week.md` | A full worked 7-day example — cooking, leftovers, a low day, an off-plan night, costs. |
+| `CHEATSHEET.md` | Plain-text one-page cheat sheet (paste/print). |
+| `INDEX.md` | Hub tying the three forms (app · docs · CLI) together. |
+| `meal_planner.py` | Runnable CLI: today's plan, budget, groceries, targets, low-effort swaps. |
+| `app/` | **The full web app** — 20 screens, 169 recipes, installable PWA, offline. See `app/README.md`. |
+
+> **New here?** The richest way to use all of this is the **app** (`app/index.html`).
+> Prefer reading? Start at `00-START-HERE.md`. Want a terminal? `meal_planner.py`.
 
 ---
 

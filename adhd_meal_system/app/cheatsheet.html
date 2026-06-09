@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anchor — One-Page Cheat Sheet</title>
+<style>
+/* ============================================================================
+ * Anchor — printable one-page cheat sheet.
+ * Self-contained. Screen = dark, friendly. Print = clean B/W, fits one A4/Letter
+ * page. Screenshot-friendly on a phone. No JS required.
+ * ==========================================================================*/
+:root{
+  --ink:#10151c; --bg:#0e1116; --card:#161c24; --line:#2a333f;
+  --muted:#8a97a6; --accent:#2dd4bf; --warn:#fbbf24; --good:#4ade80;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:#e8edf3;line-height:1.4;
+  padding:18px;max-width:1000px;margin:0 auto;-webkit-font-smoothing:antialiased;}
+a{color:var(--accent);}
+.sheet{display:grid;gap:12px;}
+header.cs-head{display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid var(--accent);padding-bottom:10px;flex-wrap:wrap;gap:8px;}
+.cs-brand{display:flex;align-items:center;gap:10px;}
+.cs-mark{font-size:1.8rem;}
+.cs-title{font-size:1.5rem;font-weight:850;letter-spacing:-.02em;}
+.cs-tag{color:var(--accent);font-weight:700;font-size:.85rem;}
+.cs-meta{font-size:.72rem;color:var(--muted);text-align:right;}
+.cs-print-btn{background:var(--accent);color:#04201c;border:none;padding:9px 16px;
+  border-radius:999px;font-weight:750;font-size:.85rem;cursor:pointer;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;}
+.box h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);
+  margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.box.warn h2{color:var(--warn);}
+.box.good h2{color:var(--good);}
+ul{list-style:none;}
+li{font-size:.82rem;padding:2px 0;display:flex;gap:7px;}
+li::before{content:"›";color:var(--accent);font-weight:800;flex-shrink:0;}
+.box.warn li::before{content:"!";color:var(--warn);}
+.box.good li::before{content:"✓";color:var(--good);}
+.rule{font-size:.92rem;font-weight:650;background:linear-gradient(90deg,
+  color-mix(in srgb,var(--accent) 18%,transparent),transparent);
+  border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;}
+.alarms{display:flex;flex-direction:column;gap:6px;}
+.alarm{display:flex;gap:10px;align-items:baseline;font-size:.82rem;}
+.alarm .t{font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;
+  width:52px;flex-shrink:0;}
+table{width:100%;border-collapse:collapse;font-size:.8rem;}
+td,th{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line);}
+th{color:var(--muted);font-weight:650;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
+td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);}
+.meal-em{margin-right:4px;}
+.swap td:first-child{color:var(--muted);}
+.swap td:last-child{font-weight:600;}
+.foot{font-size:.7rem;color:var(--muted);text-align:center;padding-top:6px;border-top:1px solid var(--line);}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;}
+.kpi-item{font-size:.8rem;}
+.kpi-item b{color:var(--accent);font-size:1.05rem;}
+
+/* ---------- PRINT ---------- */
+@media print{
+  @page{margin:10mm;size:auto;}
+  body{background:#fff;color:#000;padding:0;font-size:10px;max-width:100%;}
+  .cs-print-btn{display:none;}
+  header.cs-head{border-color:#000;}
+  .cs-title,.cs-tag,.box h2,.alarm .t,.kpi-item b{color:#000 !important;}
+  .box{background:#fff;border:1px solid #999;break-inside:avoid;border-radius:8px;padding:8px 9px;}
+  .rule{background:#f0f0f0;border-left:3px solid #000;color:#000;}
+  li::before,.box.warn li::before,.box.good li::before{color:#000;}
+  td,th{border-color:#bbb;}
+  .sheet{gap:7px;}
+  .grid2,.grid3{gap:7px;}
+  a{color:#000;text-decoration:none;}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="cs-head">
+    <div class="cs-brand">
+      <span class="cs-mark">⚓</span>
+      <div>
+        <div class="cs-title">Anchor — Cheat Sheet</div>
+        <div class="cs-tag">Eat on autopilot · ADHD meal system</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="cs-meta">Goal: lean weight GAIN · cheap · high-protein<br/>Andover, MA · Market Basket</div>
+      <button class="cs-print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+    </div>
+  </header>
+
+  <div class="rule">THE ONE RULE: Eat on the alarm, even with zero appetite. No hunger cue is coming — it's the meds. Skipping kills the surplus. There is no streak to break; miss one, just eat at the next alarm.</div>
+
+  <div class="grid3">
+    <!-- ALARMS -->
+    <div class="box">
+      <h2>⏰ Daily alarms</h2>
+      <div class="alarms">
+        <div class="alarm"><span class="t">8:00</span><span>🍳 EAT — reheat leftovers / oats / shake</span></div>
+        <div class="alarm"><span class="t">12:30</span><span>🥡 LUNCH — leftovers (or drink a shake)</span></div>
+        <div class="alarm"><span class="t">15:30</span><span>🥜 Snack — grab protein</span></div>
+        <div class="alarm"><span class="t">18:30</span><span>🍳 DINNER — cook the batch, make extra</span></div>
+        <div class="alarm"><span class="t">20:30</span><span>🌙 Snack — then kitchen closed</span></div>
+      </div>
+    </div>
+
+    <!-- ENGINE -->
+    <div class="box good">
+      <h2>🔥 The engine</h2>
+      <ul>
+        <li>Cook ONE big batch (4–6 servings) when the spark hits.</li>
+        <li>Leftovers = tomorrow's breakfast + lunch, free.</li>
+        <li>Summon cooking energy once; coast the rest.</li>
+        <li>Leftovers are the cheapest AND easiest food you own.</li>
+        <li>Portion into single containers the second it's done.</li>
+      </ul>
+    </div>
+
+    <!-- GAIN -->
+    <div class="box">
+      <h2>💪 Gain on no appetite</h2>
+      <ul>
+        <li>Drink calories — a shake goes down when food won't.</li>
+        <li>+Olive oil (+120), +peanut butter (+190), +nuts (+170).</li>
+        <li>Whole milk in shakes/oats; extra rice/oats.</li>
+        <li>Protein first, every meal (~30–40g each).</li>
+        <li>Eat by alarm, not hunger.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <!-- DINNER ROTATION -->
+    <div class="box">
+      <h2>🍲 Dinner rotation (batch these)</h2>
+      <table>
+        <tr><th>Day</th><th>Dish</th><th class="num">P/Fib</th><th class="num">$/srv</th></tr>
+        <tr><td>Mon</td><td><span class="meal-em">🌶️</span>Lentil & bean chili</td><td class="num">28/18</td><td class="num">$1.10</td></tr>
+        <tr><td>Tue</td><td><span class="meal-em">🥢</span>Chicken-thigh & cabbage stir-fry</td><td class="num">38/8</td><td class="num">$1.80</td></tr>
+        <tr><td>Wed</td><td><span class="meal-em">🍛</span>Red lentil dal + rice</td><td class="num">24/16</td><td class="num">$0.90</td></tr>
+        <tr><td>Thu</td><td><span class="meal-em">🍳</span>Bean & egg shakshuka</td><td class="num">26/12</td><td class="num">$1.30</td></tr>
+        <tr><td>Fri</td><td><span class="meal-em">🍗</span>Whole roast chicken + potatoes</td><td class="num">40/7</td><td class="num">$2.00</td></tr>
+        <tr><td>Sat</td><td><span class="meal-em">🍚</span>Tofu/chicken fried rice</td><td class="num">30/6</td><td class="num">$1.50</td></tr>
+        <tr><td>Sun</td><td><span class="meal-em">🍝</span>Pasta e fagioli / carcass soup</td><td class="num">32/14</td><td class="num">$1.20</td></tr>
+      </table>
+    </div>
+
+    <!-- QUICK MEALS -->
+    <div class="box">
+      <h2>🥡 Breakfast · Lunch · Snacks</h2>
+      <table>
+        <tr><th>Slot</th><th>Default</th><th class="num">P</th><th class="num">$</th></tr>
+        <tr><td>B'fast</td><td>Reheat batch / overnight oats / shake</td><td class="num">35</td><td class="num">$0.90</td></tr>
+        <tr><td>Lunch</td><td>Leftovers (or tuna+bean / shake)</td><td class="num">30</td><td class="num">$1.00</td></tr>
+        <tr><td>Snack</td><td>Eggs+fruit · cottage cheese · PB+banana</td><td class="num">13</td><td class="num">$0.60</td></tr>
+        <tr><td>Snack</td><td>Greek yogurt+honey · milk+protein shake</td><td class="num">20</td><td class="num">$0.90</td></tr>
+      </table>
+      <div style="margin-top:8px;" class="kpi">
+        <span class="kpi-item">Target: <b>~$8–10</b>/day</span>
+        <span class="kpi-item">≈ <b>$250</b>/mo</span>
+        <span class="kpi-item">Protein <b>0.8–1g/lb</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <!-- DEPLETED DAY -->
+    <div class="box warn">
+      <h2>🔋 Too fried to cook?</h2>
+      <ul>
+        <li>Open a shake. You ate. Win.</li>
+        <li>90-sec bowl: rice pouch + canned beans + tuna/chicken + cheese + oil (~$1.20).</li>
+        <li>PB on a banana + glass of milk.</li>
+        <li>Ordering out? Biggest rice + double-protein + beans bowl.</li>
+      </ul>
+    </div>
+
+    <!-- FLOOR SHELF -->
+    <div class="box">
+      <h2>🥫 Floor shelf (always stocked)</h2>
+      <ul>
+        <li>Shakes, Greek yogurt/cottage cheese tub</li>
+        <li>Canned tuna/chicken, canned beans</li>
+        <li>Rice pouches, oats, peanut butter, nuts</li>
+        <li>Hard-boiled eggs, bananas, olive oil</li>
+      </ul>
+    </div>
+
+    <!-- GROCERIES -->
+    <div class="box">
+      <h2>🛒 Weekly cart (★ = always)</h2>
+      <ul>
+        <li>★ Dried lentils & beans, eggs, canned tuna</li>
+        <li>★ Peanut butter, oats, olive oil, protein powder</li>
+        <li>Chicken thighs/whole chicken, bulk rice</li>
+        <li>★ Frozen veg, bananas/apples, canned tomatoes</li>
+        <li>Cabbage, carrots, onions, cheese, spices</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box good">
+    <h2>📖 Cook from tested recipes</h2>
+    <ul>
+      <li><b>Budget Bytes</b> (budgetbytes.com) — every recipe priced per serving. Start here.</li>
+      <li>BBC Good Food &amp; EatingWell — free, with full nutrition info.</li>
+      <li>Serious Eats — technique &amp; the "why". Minimalist Baker — fewest steps.</li>
+      <li>In the app: open any meal → "Cook it from a tested recipe."</li>
+    </ul>
+  </div>
+
+  <div class="box" style="background:transparent;border-style:dashed;">
+    <h2>⚓ The system in one line</h2>
+    <div style="font-size:.85rem;">
+      Remove decisions · attach eating to alarms + habits · every meal has a cook-gear and a no-cook floor ·
+      batch-cook to coast on cheap leftovers · lead with cheap protein + fiber · plan for the depleted day · never start over.
+    </div>
+  </div>
+
+  <div class="foot">
+    Anchor · educational tool, not medical advice · weigh weekly, track the trend · open <b>index.html</b> for the full app
+  </div>
+
+</div>
+</body>
+</html>

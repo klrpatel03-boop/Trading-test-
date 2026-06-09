@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0" />
+  <meta name="description" content="Anchor — an ADHD meal system that decides what you eat so you don't have to. Cheap, high-protein, built for appetite-killing meds and low executive function." />
+  <meta name="theme-color" content="#0e1116" />
+  <meta name="color-scheme" content="dark light" />
+
+  <!-- iOS / PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Anchor" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icon.svg" />
+
+  <title>Anchor · Eat on autopilot</title>
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/views.css" />
+  <link rel="stylesheet" href="css/print.css" media="print" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <!-- chrome + views injected by app.js -->
+    <noscript>
+      <div style="padding:2rem;font-family:system-ui;max-width:40rem;margin:0 auto;">
+        <h1>⚓ Anchor</h1>
+        <p>Anchor needs JavaScript to run. It's a single-page app with no server and
+        no tracking — everything stays on your device. Enable JavaScript and reload.</p>
+        <p>Prefer no app? The whole system is also written up in plain Markdown in the
+        folder above this one (<code>00-START-HERE.md</code> through
+        <code>08-budget-and-cost.md</code>), and there's a printable one-page
+        <code>cheatsheet.html</code>.</p>
+      </div>
+    </noscript>
+  </div>
+
+  <!-- data + libs -->
+  <script src="js/data.js"></script>
+  <script src="js/library.js"></script>
+  <script src="js/cookbooks.js"></script>
+  <script src="js/library2.js"></script>
+  <script src="js/library3.js"></script>
+  <script src="js/foods.js"></script>
+  <script src="js/library4.js"></script>
+  <script src="js/library5.js"></script>
+  <script src="js/library6.js"></script>
+  <script src="js/library7.js"></script>
+  <script src="js/library8.js"></script>
+  <script src="js/library9.js"></script>
+  <script src="js/library10.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/calc.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/notify.js"></script>
+
+  <!-- views -->
+  <script src="js/views/today.js"></script>
+  <script src="js/views/decide.js"></script>
+  <script src="js/views/plan.js"></script>
+  <script src="js/views/prep.js"></script>
+  <script src="js/views/menu.js"></script>
+  <script src="js/views/plate.js"></script>
+  <script src="js/views/cookday.js"></script>
+  <script src="js/views/cookbooks.js"></script>
+  <script src="js/views/flavor.js"></script>
+  <script src="js/views/groceries.js"></script>
+  <script src="js/views/budget.js"></script>
+  <script src="js/views/calculator.js"></script>
+  <script src="js/views/wellness.js"></script>
+  <script src="js/views/track.js"></script>
+  <script src="js/views/insights.js"></script>
+  <script src="js/views/pantry.js"></script>
+  <script src="js/views/learn.js"></script>
+  <script src="js/views/help.js"></script>
+  <script src="js/views/settings.js"></script>
+
+  <!-- shell (boots on load) -->
+  <script src="js/app.js"></script>
+</body>
+</html>
