@@ -78,7 +78,11 @@
         }, fav ? "★" : "☆"),
       ]),
       h("h3.meal-name", {}, meal.name),
-      ui.gearBadge(meal.gear),
+      h("div.card-badge-row", {}, [
+        ui.gearBadge(meal.gear),
+        Anchor.fitsBigPan && Anchor.fitsBigPan(meal) ? h("span.badge-pan", { title: "Great in your 6-qt pan" }, "🍳 6-qt") : null,
+        Anchor.usesKale && Anchor.usesKale(meal) ? h("span.badge-garden", { title: "Uses kale / greens from your garden" }, "🥬") : null,
+      ]),
       ui.macroRow(meal),
       meal.note ? h("p.meal-note", {}, meal.note) : null,
       opts.slotLabel ? h("div.meal-slot-label", {}, opts.slotLabel) : null,
@@ -138,6 +142,9 @@
         h("strong", {}, "💪 Gain booster: "),
         booster.text + " (+" + booster.kcal + " cal, " + money(booster.cost) + "). " + booster.note,
       ]) : null,
+
+      (Anchor.kaleSwapNote && Anchor.kaleSwapNote(meal)) ? h("div.garden-callout", {}, Anchor.kaleSwapNote(meal)) : null,
+      (Anchor.fitsBigPan && Anchor.fitsBigPan(meal)) ? h("div.pan-callout", {}, "🍳 Perfect in your All-Clad 6-qt — deep enough for the full batch.") : null,
 
       ui.recipeLinks(meal),
 

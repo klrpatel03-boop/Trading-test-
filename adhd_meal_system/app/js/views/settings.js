@@ -54,6 +54,41 @@
         })),
       ]),
 
+      /* kitchen & garden */
+      ui.card([
+        h("h3.detail-h", {}, "Kitchen & garden"),
+        h("p.muted", {}, "What you cook with and what you grow. Recipes that fit your pan get a 🍳 6-qt badge; recipes that use your greens get a 🥬."),
+        h("label.setting-label", {}, "Your main pan / kit"),
+        h("div.kit-editor", {}, (state.kit || []).map(function (k, i) {
+          return h("input.input", {
+            type: "text", value: k.name,
+            onChange: function (e) { Anchor.store.update(function (s) { s.kit[i].name = e.target.value; }); },
+          });
+        })),
+        h("label.setting-label", {}, "Garden"),
+        h("div.garden-editor", {}, (state.garden || []).map(function (g, i) {
+          return h("div.garden-edit-row", {}, [
+            h("input.input.garden-crop", { type: "text", value: g.crop, placeholder: "Crop",
+              onChange: function (e) { Anchor.store.update(function (s) { s.garden[i].crop = e.target.value; }); } }),
+            h("input.input.garden-plants", { type: "number", value: g.plants || "", placeholder: "#",
+              onChange: function (e) { Anchor.store.update(function (s) { s.garden[i].plants = +e.target.value; }); } }),
+            ui.segmented([
+              { value: "abundant", label: "Lots" }, { value: "trickle", label: "A little" },
+            ], g.supply === "abundant" ? "abundant" : "trickle", function (v) {
+              Anchor.store.update(function (s) { s.garden[i].supply = v; });
+            }),
+            h("button.linkbtn", { onClick: function () {
+              Anchor.store.update(function (s) { s.garden.splice(i, 1); });
+              Anchor.router.refresh();
+            } }, "remove"),
+          ]);
+        })),
+        h("button.btn.btn-ghost.btn-sm", { onClick: function () {
+          Anchor.store.update(function (s) { s.garden.push({ crop: "", emoji: "🌱", plants: 1, supply: "trickle", note: "" }); });
+          Anchor.router.refresh();
+        } }, "+ Add a crop"),
+      ]),
+
       /* reminders */
       ui.card([
         h("h3.detail-h", {}, "Meal reminders"),

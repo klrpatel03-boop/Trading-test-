@@ -21,6 +21,7 @@
     { id: "prep", label: "Prep planner", icon: "🧑‍🍳" },
     { id: "cookbooks", label: "Recipes", icon: "📖" },
     { id: "flavor", label: "Flavor lab", icon: "🌶️" },
+    { id: "garden", label: "From your garden", icon: "🥬" },
     { id: "foods", label: "Cheap food index", icon: "🏷️" },
     { id: "plate", label: "Build a plate", icon: "🍽️" },
     { id: "wellness", label: "Hydration & meds", icon: "💧" },

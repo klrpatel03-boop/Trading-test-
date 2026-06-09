@@ -66,10 +66,10 @@ global.confirm = window.confirm;
 
 // load scripts in the order index.html lists them
 const order = [
-  "js/data.js", "js/library.js", "js/cookbooks.js", "js/library2.js", "js/library3.js", "js/foods.js", "js/library4.js", "js/library5.js", "js/library6.js", "js/library7.js", "js/library8.js", "js/library9.js", "js/library10.js", "js/util.js", "js/store.js",
+  "js/data.js", "js/library.js", "js/cookbooks.js", "js/library2.js", "js/library3.js", "js/foods.js", "js/library4.js", "js/library5.js", "js/library6.js", "js/library7.js", "js/library8.js", "js/library9.js", "js/library10.js", "js/library_garden.js", "js/garden.js", "js/util.js", "js/store.js",
   "js/calc.js", "js/charts.js", "js/ui.js", "js/notify.js",
   "js/views/today.js", "js/views/decide.js", "js/views/plan.js", "js/views/prep.js", "js/views/menu.js", "js/views/plate.js",
-  "js/views/cookday.js", "js/views/cookbooks.js", "js/views/flavor.js", "js/views/groceries.js",
+  "js/views/cookday.js", "js/views/garden.js", "js/views/cookbooks.js", "js/views/flavor.js", "js/views/groceries.js",
   "js/views/budget.js", "js/views/calculator.js", "js/views/wellness.js", "js/views/track.js", "js/views/insights.js",
   "js/views/pantry.js", "js/views/learn.js", "js/views/help.js", "js/views/settings.js",
   "js/app.js",
@@ -107,7 +107,7 @@ if (!A) { console.error("Anchor global missing — aborting"); process.exit(1); 
         if (m[k] === undefined) throw new Error(m.id + " missing " + k);
       });
     });
-    if (A.meals.length < 165) throw new Error("expected 50+ meals, got " + A.meals.length);
+    if (A.meals.length < 175) throw new Error("expected 50+ meals, got " + A.meals.length);
     ok("meal DB integrity (" + A.meals.length + " meals, unique ids)");
   } catch (e) { fail("meal DB integrity", e); }
 })();
@@ -176,6 +176,17 @@ try {
   if (tg.protein < 100) throw new Error("protein too low");
   ok("targets: gain surplus computed (" + tg.calories + " cal, " + tg.protein + "g protein)");
 } catch (e) { fail("targets calc", e); }
+
+// garden / kit personalization
+try {
+  if (typeof A.fitsBigPan !== "function" || typeof A.usesKale !== "function") throw new Error("garden helpers missing");
+  const kale = A.kaleRecipes();
+  if (kale.length < 8) throw new Error("expected kale recipes, got " + kale.length);
+  if (!A.fitsBigPan(A.byId("chili"))) throw new Error("chili should fit the big pan");
+  const st = A.store.get();
+  if (!st.garden || !st.garden.some(g => /kale/i.test(g.crop))) throw new Error("garden not seeded with kale");
+  ok("garden: kale recipes (" + kale.length + ") + 6-qt pan fit + seeded garden");
+} catch (e) { fail("garden personalization", e); }
 
 // navigate via hash to each view through the router
 try {

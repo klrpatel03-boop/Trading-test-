@@ -468,3 +468,30 @@
 .milestone-title { font-weight: 700; font-size: .84rem; }
 .milestone-blurb { font-size: .72rem; color: var(--muted); }
 @media (min-width: 560px) { .milestone-grid { grid-template-columns: repeat(3,1fr); } }
+
+/* ============================ GARDEN ============================ */
+.card-badge-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.badge-pan { font-size: .68rem; font-weight: 750; padding: 3px 8px; border-radius: var(--radius-pill); background: color-mix(in srgb,var(--warn) 16%,transparent); color: var(--warn); }
+.badge-garden { font-size: .8rem; padding: 2px 6px; border-radius: var(--radius-pill); background: color-mix(in srgb,var(--good) 16%,transparent); }
+.garden-callout { margin-top: 12px; padding: 11px 13px; border-radius: var(--radius-sm); background: color-mix(in srgb,var(--good) 12%,transparent); border: 1px solid color-mix(in srgb,var(--good) 28%,transparent); font-size: .86rem; }
+.pan-callout { margin-top: 8px; padding: 11px 13px; border-radius: var(--radius-sm); background: color-mix(in srgb,var(--warn) 10%,transparent); border: 1px solid color-mix(in srgb,var(--warn) 26%,transparent); font-size: .86rem; }
+.kit-row { padding: 4px 0; }
+.kit-name { font-weight: 650; }
+.garden-crops { display: grid; gap: 12px; }
+.crop-card { margin-bottom: 0; }
+.crop-head { display: flex; align-items: center; gap: 12px; }
+.crop-emoji { font-size: 2rem; }
+.crop-name { font-size: 1.05rem; font-weight: 750; }
+.crop-supply { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: var(--radius-pill); }
+.crop-supply.abundant { background: color-mix(in srgb,var(--good) 18%,transparent); color: var(--good); }
+.crop-supply.trickle { background: color-mix(in srgb,var(--muted) 22%,transparent); color: var(--muted); }
+.crop-note { font-size: .86rem; color: var(--text-2); margin-top: 8px; line-height: 1.5; }
+.garden-tips { display: grid; gap: 12px; margin-bottom: 8px; }
+.garden-tip-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.garden-tip-title { font-weight: 720; font-size: .95rem; margin-bottom: 8px; }
+.garden-editor { display: flex; flex-direction: column; gap: 10px; }
+.garden-edit-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.garden-crop { flex: 1; min-width: 120px; }
+.garden-plants { width: 64px; flex-shrink: 0; }
+.kit-editor { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+@media (min-width: 560px) { .garden-crops { grid-template-columns: 1fr 1fr; } .garden-tips { grid-template-columns: repeat(3,1fr); } }

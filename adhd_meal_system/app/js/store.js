@@ -29,6 +29,9 @@
     favorites: [],
     // per-day meal overrides: { "YYYY-MM-DD": { breakfast: mealId, ... } }
     overrides: {},
+    // kit (equipment) + garden — seeded from defaults on first load, editable
+    kit: null,
+    garden: null,
     // hydration: { "YYYY-MM-DD": cups }  (stimulants dehydrate; thirst mimics hunger)
     water: {},
     waterGoal: 8,
@@ -78,6 +81,8 @@
     if (!state.schedule) {
       state.schedule = clone(Anchor.defaultSchedule);
     }
+    if (!state.kit) state.kit = clone(Anchor.defaultKit || []);
+    if (!state.garden) state.garden = clone(Anchor.defaultGarden || []);
     if (!state.createdAt) {
       state.createdAt = new Date().toISOString();
     }

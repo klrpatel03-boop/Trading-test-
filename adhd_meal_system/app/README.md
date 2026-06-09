@@ -51,6 +51,7 @@ python3 -m http.server 8000
 | **Week plan** | 7-day grid, auto-filled, shuffle-able, weekly cost + macro summary. |
 | **Recipes** | Trusted online cookbooks + search any dish across all of them + the rotation's tested recipes. |
 | **Flavor lab** | Spice blends, 5-minute sauces, rescue moves, techniques — variety without re-deciding. |
+| **From your garden** | Personalized to what you grow + cook with. Turns a kale surplus into a plan (harvest/preserve/use-a-big-bunch), flags recipes that suit your big 6-qt pan, and treats a low-yield crop as garnish-only. |
 | **Cheap food index** | Whole foods ranked by protein/fiber/calories **per dollar**. |
 | **Cart** | Repeatable grocery list by store section, checkable, with tier-1 "always buy" stars. |
 | **Budget** | Monthly cost tiers, your plan's projected cost, store strategy, per-dollar rankings. |
