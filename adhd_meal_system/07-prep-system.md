@@ -50,8 +50,8 @@ that reheats perfectly:
 - **Big-batch chili** (turkey/beef + 3 kinds of beans + tomato) — huge fiber, freezes great.
 - **Sheet-pan chicken + veg + potatoes** — one pan, minimal cleanup.
 - **Curry or stew** over rice — dump-and-simmer, scales easily.
-- **Egg + bean breakfast burritos** — assembly-line a dozen, wrap, freeze. *(Directly
-  replaces frozen-junk breakfast and the frozen-pizza craving format.)*
+- **Egg + bean breakfast burritos** — assembly-line a dozen, wrap, freeze. *(A grab-and-
+  reheat breakfast for the days when even pouring oats is too much.)*
 - **A casserole / baked pasta** with high-protein pasta + lean meat + veg.
 
 Portion into single containers the moment it's done (this is the key step — bulk in a pot

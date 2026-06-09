@@ -1,127 +1,140 @@
-# 01 — The System: 9 ADHD strategies and why they work
+# 01 — The System: executive-function strategies and why they work
 
 Most diets fail ADHD people because they assume the bottleneck is *knowledge* or
-*willpower*. It isn't. The bottleneck is **executive function** — the brain's ability
-to initiate, remember, sequence, and follow through. When that runs low (end of day,
-stress, meds wearing off, boredom), the plan evaporates and you default to whatever
-is fastest and most dopamine-dense: candy, frozen pizza, Taco Bell.
+*willpower*. It isn't. The bottleneck is **executive function** — the brain's capacity
+to initiate a task, decide between options, sequence the steps, and follow through.
+When executive function is depleted (end of day, stress, meds wearing off, overwhelm,
+boredom), eating either doesn't happen or collapses into whatever takes zero effort.
 
-So this system is engineered around 9 principles. Read this once. It's the *why*
-that makes you trust the system on the days it's hard.
+So the design target is simple: **lower the executive-function cost of eating to near
+zero, on every meal, on every day — including the bad ones — and do it cheaply.**
+
+Here are the 9 principles. Read once. This is the *why* that lets you trust the system
+when it's hard.
 
 ---
 
 ## 1. Eat by schedule, not by hunger
 
-**ADHD + stimulants = broken hunger signals.** Your meds suppress appetite, and ADHD
-already comes with poor interoception (weak internal body-awareness). If you wait to
-feel hungry, you'll skip meals all day — and skipped meals are *the* root cause of
-the evening binge and the body-comp plateau.
+ADHD + appetite-suppressing meds = **no reliable hunger signal.** If you wait to feel
+hungry, you'll skip meals. Skipped meals wreck body comp, energy, focus, and mood.
 
-➡️ **Fix:** Eating becomes a scheduled task triggered by an alarm, exactly like taking
-a pill. You eat because the alarm went off, not because you feel hungry. Feeling
-nothing at 12:30 is *expected and normal* — eat anyway, drink it if you have to.
+➡️ **Fix:** Eating is a scheduled task triggered by an alarm, like taking a pill. You
+eat because the alarm fired, not because you feel hungry. Feeling nothing at meal time
+is *expected* — eat anyway (cook it if you have the energy, drink/grab it if you don't).
 
 ---
 
-## 2. Anchor meals to routines, not clock times
+## 2. Every meal is hard — so every meal gets the same support
 
-Time-blindness means "1:00 pm" is meaningless — you blink and it's 4. But you don't
-miss *events*. You always make coffee. You always sit down to work. You always wind
-down at night.
+There is no "easy meal" for you. Breakfast, lunch, and dinner are all executive-function
+hurdles. A system that only props up one of them leaves you exposed on the other two.
+
+➡️ **Fix:** All three meals get an alarm, an anchor, and a no-effort fallback. Don't try
+to white-knuckle the "hard" ones — treat them identically: small, decided-for-you, and
+backstopped.
+
+---
+
+## 3. Anchor meals to routines, not clock times
+
+Time-blindness makes "1:00 pm" meaningless — you blink and it's 4. But you don't miss
+*events*. You make coffee. You sit down to work. You wind down at night.
 
 ➡️ **Fix:** Attach each meal to an existing daily anchor (habit-stacking):
-*"After I pour my morning coffee → I eat breakfast."* The anchor is a thing you
-already reliably do, so the meal piggybacks on a habit that already survives your ADHD.
-(Details in `02-meal-schedule.md`.)
+*"After I pour my morning coffee → breakfast."* The anchor is something you already do
+reliably, so the meal rides a habit that already survives your ADHD.
 
 ---
 
-## 3. Eliminate every decision
+## 4. Lower the activation energy — with two gears
 
-"What should I eat?" is the question that kills you. Each decision burns executive
-function, and decision fatigue is what hands the wheel to Taco Bell.
+Task-initiation is the hardest part of ADHD. A 6-step meal won't happen on a depleted
+day; a 1-step meal will. But you also *love cooking*, and cooking is a genuine dopamine
+source that pulls you toward food when it's available.
 
-➡️ **Fix:** A fixed **rotating menu**. Breakfast barely changes. Lunch is one of three
-things on a loop. Dinner rotates on a weekly schedule. The tool tells you exactly what
-today's food is. **Boring is a feature** — novelty-seeking is what got you into
-DoorDash-roulette. You spend your novelty budget on *flavor* (sauces, seasonings), not
-on re-deciding the whole meal.
+➡️ **Fix: two gears for every meal.**
+- **Cook gear (default):** you love it, so lean in — but cook *in big batches* so the
+  effort pays off for days. Cooking is the engagement that gets you fed.
+- **Floor gear (fallback):** a no-cook, 2-minute version for when even cooking is too
+  much. Open and eat. Never below this floor.
 
----
-
-## 4. Lower the activation energy to near zero
-
-ADHD task-initiation is the hardest part. A meal that needs 6 steps won't happen on a
-hard day. A meal that needs 1 step will.
-
-➡️ **Fix:** Default meals are **assembly, not cooking** — open, combine, eat. Real
-cooking is an *optional bonus* for good days, never a requirement. The crash protocol
-goes even lower: open and eat, zero assembly.
+You're never forced to cook, and never left with nothing.
 
 ---
 
-## 5. Make the good food the *closest* food
+## 5. Cook once, coast on leftovers
 
-You will eat whatever is nearest when willpower is gone. That's not a moral failing,
-it's physics of attention.
+This is the keystone where your three constraints — *loves cooking*, *executive function
+varies day to day*, and *needs to be cheap* — all line up perfectly.
 
-➡️ **Fix:** Engineer your environment. The **Crash Shelf** (one shelf, one fridge spot)
-holds only good emergency food. Junk is not in the house, or it's inconvenient and out
-of sight. The good choice wins by being *easier to reach*, not by being more virtuous.
-
----
-
-## 6. Redirect cravings instead of resisting them
-
-Willpower-based resistance fails 100% of the time eventually. But cravings can be
-*rerouted* to something that scratches the same neurological itch.
-
-➡️ **Fix:** The **Junk Food Translator** (`03-meal-menu.md`). Every junk default has a
-pre-stocked upgrade that hits the same craving (sweet / cheesy-carby / savory-spicy)
-with way more protein and fiber. You don't say no to the candy — you say yes to the
-*better* candy that's already in arm's reach.
+➡️ **Fix:** When executive function is high and the cooking spark hits, **cook a big
+batch.** Those leftovers are simultaneously the **cheapest** food (bulk staples, no
+waste, no takeout) and the **lowest-effort** food (reheat, zero decisions) you can have.
+A good cooking day pre-pays for several depleted days. (See `07-prep-system.md`.)
 
 ---
 
-## 7. Protein and fiber are the two levers that do everything
+## 6. Eliminate decisions
 
-For body comp *and* for an ADHD brain, these two do the heavy lifting:
-- **Protein** → satiety, preserves muscle in a deficit, blunts blood-sugar swings,
-  hardest macro to overeat. Target ~0.8–1 g per lb of bodyweight.
-- **Fiber** → satiety, steady energy (no crash → no crash-snacking), gut health.
-  Target ~35–45 g/day, ramped up slowly.
+"What should I eat?" burns executive function and triggers paralysis. Decision fatigue
+is what ends in a depleted-day takeout order.
 
-➡️ **Fix:** Every default meal is built protein-first, fiber-second. Hit those two and
-calories and cravings largely take care of themselves. (You don't have to count
-everything — see `06-tracking.md`.)
+➡️ **Fix:** A fixed, rotating menu and a tool that picks for you. **Boring is a feature.**
+Spend your novelty budget on *flavor and technique* (you love cooking — go wild on
+spices, sauces, methods) instead of on re-deciding the whole meal from scratch.
 
 ---
 
-## 8. Plan for the predictable crash, don't pretend it won't happen
+## 7. Make the good food the *closest* food
 
-You *will* have low-executive-function days. Pretending you won't is why plans fail.
+When executive function is gone, you eat whatever is nearest and easiest. That's
+physics of attention, not a character flaw.
 
-➡️ **Fix:** The crash isn't a failure state, it's a *planned state* with its own menu
-(`05-crash-protocol.md`). On a crash day you "fail" into Greek yogurt and a protein
-shake instead of Taco Bell. The floor is raised so even your worst day is fine.
+➡️ **Fix:** Engineer the environment. Leftovers front-and-center in the fridge. A
+stocked **low-effort shelf** of grab-and-eat staples. The cheap, healthy option wins by
+being the one in arm's reach, not by being more virtuous.
 
 ---
 
-## 9. Forgiveness is built in — there is no "starting over"
+## 8. Protein and fiber are the two levers — and they're the *cheapest* foods too
 
-The "I blew it, might as well restart Monday" spiral is an ADHD all-or-nothing trap.
-One off-plan meal becomes an off-plan week becomes quitting.
+For lean weight gain *and* an ADHD brain, these do the heavy lifting:
+- **Protein** → builds muscle (so your surplus becomes lean mass, not just fat),
+  steadies blood sugar. Target ~0.8–1 g per lb bodyweight.
+- **Fiber** → steady energy, gut health. Target ~30–38 g/day — *adequate, not maxed*.
+  (Maxing fiber backfires for a weight-gain goal: it's so filling it fights the surplus
+  when your appetite is already suppressed. Get enough, then prioritize calories.)
 
-➡️ **Fix:** The system has no streak to break. You don't "fall off." You just resume at
-the **next alarm**. Ate Taco Bell at lunch? The 3:30 protein-snack alarm still goes off
-and you still eat the snack. Every meal is an independent fresh start. Consistency comes
-from *recovery speed*, not perfection.
+Since you're **gaining weight with appetite-killing meds**, the third lever is
+**calorie density**: cheap, dense add-ons — olive oil, peanut butter, nuts, whole milk,
+extra oats/rice — let you hit a surplus without choking down huge volumes of food, and
+liquid calories (shakes) go down when solid food won't.
+
+Conveniently, the cheapest foods on earth — **dried beans, lentils, eggs, oats, rice,
+frozen veg, potatoes, cabbage** — are exactly the high-protein, high-fiber staples this
+plan is built on. Eating well and eating cheap are the *same* move here.
+(See `08-budget-and-cost.md`.)
+
+➡️ **Fix:** Every meal is built protein-first, fiber-second, from cheap staples. Hit
+those two and calories, cravings, and cost largely take care of themselves.
+
+---
+
+## 9. Plan for the depleted day — and never "start over"
+
+You *will* have low-executive-function days. Pretending otherwise is why plans fail.
+
+➡️ **Fix:** The depleted day is a *planned state* with its own zero-effort, cheap menu
+(`05-crash-protocol.md`). And there's no streak to break: you don't "fall off," you just
+resume at the **next alarm**. Every meal is an independent fresh start. Consistency
+comes from *recovery speed*, not perfection.
 
 ---
 
 ## The mental model in one sentence
 
-> **Remove decisions, attach eating to alarms and existing habits, keep good food
-> closest, reroute the cravings, lead with protein + fiber, and plan for the crash —
-> so that the lazy choice and the healthy choice become the same choice.**
+> **Remove decisions, attach eating to alarms and existing habits, give every meal a
+> cook-gear and a no-effort floor, batch-cook on good days to coast on cheap leftovers,
+> and lead with cheap protein + fiber — so eating still happens when executive function
+> is gone, and it costs almost nothing.**

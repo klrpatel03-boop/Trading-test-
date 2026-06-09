@@ -1,90 +1,84 @@
-# 05 — The Crash Protocol (executive-dysfunction days)
+# 05 — The Depleted-Day Protocol (executive function near zero)
 
-Some days the tank is empty. Meds wore off, you're fried, decision-making is gone, the
-thought of *assembling* anything feels impossible. **This is the exact moment you
-normally end up at Taco Bell.** This page exists so that on those days, you "fail" into
-food that's still fine.
+Some days the tank is empty. Meds wore off, you're fried, decision-making is gone, and
+the thought of cooking — even something you'd normally enjoy — feels impossible. This
+page is for those days. The goal is simple: **still eat, cheaply, with zero effort, so
+you don't skip meals (which kills your weight-gain surplus) and don't burn money on
+takeout.**
 
-> **Rule for crash days: the bar is "ate something with protein," not "ate well."**
-> Survival mode. No cooking, no assembly, no decisions. Open and eat. That's a win.
+> **Rule for depleted days: the bar is "ate protein + calories," not "ate well."**
+> Survival mode. No cooking, no decisions. Open and eat. That's a win.
 
----
-
-## The Crash Shelf
-
-One shelf in the pantry + one labeled zone in the fridge. **Only** these foods live
-there. When you're crashing, you go to the shelf and grab — no thinking, no kitchen,
-no choices. Keep it stocked like it's your emergency kit, because it is.
-
-### Fridge crash zone
-- Ready-to-drink protein shakes (just open) — *the #1 crash food: 30g protein, zero effort*
-- Greek yogurt / cottage cheese cups
-- Pre-cooked chicken / a tub of rotisserie meat
-- Hard-boiled eggs (buy pre-peeled, or batch on Sunday)
-- String cheese / Babybel
-- Pre-cut fruit, hummus cups, baby carrots
-
-### Pantry crash shelf
-- Protein bars (20g+)
-- Jerky
-- Tuna/salmon/chicken pouches (peel-top, no can opener)
-- Microwave rice pouches + canned beans (rinse) → 90-second "bowl"
-- Nut butter packets + an apple/banana
-- Roasted edamame / chickpea snacks
-- Single-serve nuts
+This is **not** about intercepting specific junk foods — it's just the floor under the
+system so a bad-executive-function day still goes okay.
 
 ---
 
-## The 3 crash meals (memorize these — that's the whole protocol)
+## The Low-Effort Shelf
 
-### 🥤 Crash Breakfast / Lunch — "Open the shake"
-Drink a ready-to-drink protein shake. Add a banana or a handful of berries if you can.
-**Done.** 30–40g protein, 30 seconds, zero executive function. This single move
-prevents the all-day skip that triggers the night binge.
+One shelf in the pantry + one labeled zone in the fridge. **Only** grab-and-eat staples
+live there. When you're depleted, you go to the shelf and grab — no thinking, no
+cooking, no choices. Keep it stocked like the emergency kit it is. All of it is cheap.
 
-### 🍚 Crash Dinner — "90-second bowl"
-Microwave a rice pouch (90 sec) → dump in rinsed canned beans + a chicken pouch or
-pre-cooked chicken → salsa + hot sauce + cheese. **Done.** 40g+ protein, ~3 minutes,
-and it scratches the exact Taco Bell itch.
-*Even lower:* skip the rice — chicken pouch + cheese + tortilla, rolled, eaten cold.
+### Fridge zone
+- A few ready-to-drink shakes (just open) — *the #1 depleted-day food, zero effort*
+- Greek yogurt / cottage cheese (the bulk tub + a spoon, not pricey single cups)
+- Leftovers from your last batch cook, front-and-center (reheat = 2 min)
+- Hard-boiled eggs (batch a dozen when you cook)
+- Cheese
+- Fruit that needs no prep (bananas, apples)
 
-### 🥄 Crash Snack — "Cup of protein"
-Greek yogurt or cottage cheese cup. Add honey + dark chocolate chips if it's a
-sweet-craving crash. **Done.** 20g+ protein.
-
----
-
-## If even the crash shelf feels like too much
-
-A genuinely bad day. Don't spiral. In order of preference, **all of these beat the
-drive-thru:**
-
-1. **Protein shake.** Just the shake. That's it. You ate. Win.
-2. **A protein bar and a piece of fruit.** Win.
-3. **You ordered out anyway?** Order the *better* version (see below) and **still hit
-   your next alarm** with a real food. One meal is not the day.
-
-### Ordering-out damage control (when delivery is happening regardless)
-The goal isn't never ordering out — it's ordering out *better* and not letting it
-become a spiral:
-- **Instead of Taco Bell:** Chipotle/Qdoba bowl — double chicken, beans, fajita veg,
-  salsa, light on rice. Nearly your burrito bowl, 50g+ protein.
-- **Instead of frozen pizza binge:** a thin-crust with chicken/veg + a side, eat half +
-  protein on the side. Or grilled chicken + a side salad from anywhere.
-- **The candy run:** order a single serving, not the bulk bag. Or hit the yogurt-and-
-  chocolate-chips move first and re-check the craving in 15 min.
-
-> **The most important sentence on this page:** ordering out once does **not** break the
-> system. There is no streak. Your next alarm fires, you eat the good thing, you're back.
-> The failure isn't the bad meal — it's letting the bad meal cancel the next good one.
+### Pantry shelf
+- Canned tuna / sardines / chicken (peel-top) — cheapest no-cook protein
+- Microwave rice pouches + canned beans → 90-second bowl
+- Peanut butter + nuts + trail mix — *dense calories for gaining, no prep*
+- Oats (microwave with milk) + honey
+- A jar of olive oil to drizzle calories onto anything
 
 ---
 
-## Restocking the crash shelf
+## The 3 depleted-day meals (memorize these — that's the whole protocol)
 
-The only way the crash protocol fails is an **empty shelf.** So:
-- The crash-shelf items are **mandatory** on every grocery run (tier 1 — see
-  `04-grocery-list.md`).
-- When you take the last shake/bar, that's the trigger to re-add it to the list —
-  not "when I run out completely."
-- Keep a buffer: aim to never drop below ~3 days of crash food on hand.
+### 🥤 Depleted breakfast / lunch — "Drink it"
+A shake (ready-to-drink, or blend protein + oats + banana + peanut butter + whole milk).
+Add a banana if you can. **Done.** Lots of protein *and* dense calories in liquid form —
+which is exactly what you need when appetite and energy are both gone. This single move
+prevents the all-day skip that wrecks the surplus.
+
+### 🍚 Depleted dinner — "90-second bowl"
+Microwave a rice pouch (90 sec) → dump in canned beans + a tuna/chicken pouch →
+cheese + olive oil + hot sauce. **Done.** Big protein, dense calories, ~3 minutes,
+about **$1.20**. *Even lower:* tuna + peanut-butter-banana + a glass of milk. Still a win.
+
+### 🥄 Depleted snack — "Spoon of protein"
+Big spoonful of peanut butter + a banana, or Greek yogurt + honey + nuts. **Done.**
+Protein + the dense calories that push your gain goal, zero effort.
+
+---
+
+## If even the shelf feels like too much
+
+A genuinely bad day. Don't spiral. In order, **all of these beat (cheaper, faster) a
+takeout order:**
+
+1. **A shake.** Just the shake. You ate. Win.
+2. **Peanut butter on a banana + a glass of whole milk.** Dense calories, 60 seconds. Win.
+3. **Ordering out anyway?** Order the *bigger protein* option and **still hit your next
+   alarm** with real food. One meal is not the day.
+   - Get the **biggest rice + double-protein + beans bowl** (Chipotle/Qdoba-style) — it
+     actually *fuels* your surplus instead of wasting the day's calories on something
+     small and expensive.
+
+> **The most important sentence on this page:** one rough meal does **not** break the
+> system. There is no streak. Your next alarm fires, you eat the good cheap thing,
+> you're back. The failure isn't the bad meal — it's letting it cancel the next good one.
+
+---
+
+## Restocking the shelf
+
+The only way this protocol fails is an **empty shelf.** So:
+- The shelf items are **non-negotiable** on every grocery run (`04-grocery-list.md`).
+- When you take the last shake/can/tub, that's the trigger to re-add it to the list —
+  not "when I've run out completely."
+- Keep a buffer: never drop below ~3 days of no-cook food on hand. It's cheap insurance.

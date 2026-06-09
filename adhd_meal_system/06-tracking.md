@@ -11,9 +11,11 @@ system tracks **the least possible** while still moving your body-comp goal.
 
 ## Tier 0 — The only thing you truly must do
 
-**Hit your protein target.** That's the one number that drives body comp *and* satiety.
-If you do nothing else, get your protein in. The menu is built so that just eating the
-default meals lands you there — so really, Tier 0 = "eat the scheduled meals."
+**Eat at every scheduled meal, and hit your protein.** For a weight-*gain* goal the
+failure mode isn't overeating — it's *under*-eating, because your meds erase the hunger
+that would normally drive you to the next meal. So Tier 0 is simply: **don't skip
+meals, and add a calorie booster (olive oil / peanut butter / shake) when you can.**
+The menu lands you near your protein target just by eating the scheduled meals.
 
 ---
 
@@ -23,8 +25,8 @@ At your "kitchen closed" alarm, answer 3 yes/no questions. That's the whole log:
 
 ```
 [ ] Did I eat at 3+ of my anchor meals today?
-[ ] Did I hit roughly my protein target?
-[ ] Did I drink water through the day?
+[ ] Did I hit roughly my protein + calorie (surplus) target?
+[ ] Did I add a calorie booster (olive oil / PB / shake) somewhere?
 ```
 
 3 checkboxes. No grams, no photos, no app rage. You can do this in your head, on a
@@ -35,20 +37,20 @@ week. This is how consistency compounds without burning out.
 
 ---
 
-## Tier 2 — Weekly, not daily (for the body-comp goal)
+## Tier 2 — Weekly, not daily (for the weight-gain goal)
 
 Pick **one** weekly metric. Daily weigh-ins are noise and feed the all-or-nothing
 spiral; weekly is signal.
 
 - **Body weight:** same morning each week (e.g. Sunday), after bathroom, before eating.
-  Track the *trend over weeks*, not any single number.
-- **Or a photo / waistband check:** if the scale messes with your head, a monthly
-  progress photo or "how do my jeans fit" is a perfectly valid metric.
+  Track the *trend over weeks*, not any single number. Target a steady **~0.25–0.5 lb
+  gain per week** — slow enough that it's mostly lean, not fat.
+- **Or a photo / mirror / how-clothes-fit check** if the scale messes with your head.
 
 Adjust calories only every 2–3 weeks based on the *trend*:
-- Weight not moving down and you want fat loss → trim ~150–200 cal (smaller portion of
-  rice/oats, or drop one add-on). Don't slash — small and sustainable.
-- Losing too fast / low energy / muscle loss → add a little back.
+- **Not gaining** → add ~200 cal (an extra booster: more olive oil, a bigger shake,
+  extra rice). Easiest lever when appetite is low is *liquid* calories.
+- **Gaining too fast / feeling soft** → trim ~200 cal.
 - (Get target numbers from `python3 meal_planner.py calc`.)
 
 ---

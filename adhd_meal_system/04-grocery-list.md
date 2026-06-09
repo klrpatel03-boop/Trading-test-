@@ -1,86 +1,81 @@
-# 04 — The Repeatable Grocery List
+# 04 — The Repeatable Grocery List (cheap, high-protein, gain-friendly)
 
 ADHD makes "figure out what to buy" its own paralysis. So this list is **fixed and
-repeatable** — you buy roughly the same things every week. Same list = no planning, no
-deciding, no forgotten staples that quietly kill the system.
+repeatable** — roughly the same cart every week. Same list = no planning, no deciding,
+no forgotten staples that quietly kill the system. It's also built to be **cheap** and
+**calorie-dense** (you're gaining weight on a budget).
 
-> Generate a printable/checkable version anytime with:
-> `python3 meal_planner.py groceries`
+> Generate a checkable version anytime: `python3 meal_planner.py groceries`
+> Costs and store strategy: `python3 meal_planner.py budget` / `08-budget-and-cost.md`
 
-Organized by **store section** so you walk the store once, in order, and don't backtrack
-(backtracking = wandering = abandoned cart = DoorDash).
+Organized by **store section** so you walk the store once, in order, no backtracking
+(backtracking = wandering = abandoned cart = expensive takeout). Main store:
+**Market Basket**.
 
 ---
 
-## 🥩 Protein (the priority — never run out of these)
-- [ ] Greek yogurt (large tub, 0% or 2%)
-- [ ] Cottage cheese (2%)
-- [ ] Eggs (×18 or two dozen)
-- [ ] Pre-cooked chicken (rotisserie, grilled strips, or canned)
-- [ ] Lean ground turkey or 90/10 beef
-- [ ] Frozen meatballs
-- [ ] Protein powder (whey or blend) — *the engine of your liquid lunches*
-- [ ] Ready-to-drink protein shakes (30g+) ×8+ — *crash-shelf staple*
-- [ ] Protein bars (20g+, one you genuinely like) — *candy killer*
-- [ ] Jerky (beef/turkey)
-- [ ] Tofu/tempeh or extra beans (if doing plant days)
+## 🥩 Cheap protein (the priority — never run out)
+- [ ] **Dried lentils + split peas** — best protein *and* fiber per dollar
+- [ ] **Dried beans** (black / pinto / chickpea) — buy in bulk, batch-cook, freeze
+- [ ] Eggs (2–3 dozen) — cheapest complete protein
+- [ ] Canned tuna / sardines (×4+) — no-cook floor protein
+- [ ] Bone-in chicken thighs or a whole chicken — cheapest meat per gram
+- [ ] Peanut butter (big jar) — protein *and* dense calories for gaining
+- [ ] Whole milk — dense calories for shakes/oats
+- [ ] Cottage cheese + Greek yogurt — **bulk tubs, never single cups**
+- [ ] Tofu (cheapest at international markets)
+- [ ] Protein powder — cheap shakes; the easiest calories when appetite is gone
+- [ ] Canned beans (×4+) — the floor-gear convenience version of dried
 
-## 🥦 Produce (fiber + the easy-to-eat stuff)
-- [ ] Bananas (freeze some for smoothies)
-- [ ] Berries (fresh + a big bag frozen)
-- [ ] Apples / pears
-- [ ] Clementines / easy citrus
-- [ ] Baby spinach (smoothies + scrambles + salads)
-- [ ] Bagged salad kits ×2–3
-- [ ] Baby carrots
-- [ ] Avocados
-- [ ] Pre-cut/steam-bag veg (less prep friction = it actually gets eaten)
-
-## 🧊 Frozen
-- [ ] Frozen stir-fry / mixed veg ×2–3 bags
-- [ ] Frozen berries
-- [ ] Edamame (microwave bags)
-- [ ] "Better frozen" high-protein pizza (20g+ protein) — *pizza killer backup*
-- [ ] Frozen brown rice / quinoa pouches (or shelf-stable microwave pouches)
-
-## 🥫 Pantry / shelf-stable
-- [ ] Canned black beans + chickpeas (×4+ — rinse before use)
-- [ ] Microwave rice/quinoa pouches ×4+
-- [ ] High-protein or chickpea/lentil pasta
-- [ ] Jar marinara
-- [ ] Salsa
-- [ ] High-fiber granola / oats
-- [ ] Chia seeds + ground flax
-- [ ] Peanut/almond butter
-- [ ] Hot sauce + taco seasoning + soy/teriyaki (your *novelty budget* = flavor, not new meals)
+## 🍞 Cheap carbs / calorie-dense (for the surplus)
+- [ ] **Olive oil** — the cheapest dense calories there is; drizzle on everything
+- [ ] Oats (big bag) — pennies per serving, easy gain fuel
+- [ ] Rice (big bag)
+- [ ] Potatoes (big bag — fiber in the skin)
+- [ ] Pasta / bean pasta
+- [ ] Tortillas
+- [ ] Whole-grain bread
+- [ ] Nuts / trail mix — dense calories, grab-and-go
 - [ ] Honey
-- [ ] Dark chocolate chips (for the candy-killer yogurt)
-- [ ] Hummus
 
-## 🍞 Bread / wraps
-- [ ] High-fiber / high-protein bread
-- [ ] High-protein tortillas or flatbreads (pizza + quesadilla + burrito base)
-- [ ] English muffins or pita (mini-pizza option)
+## 🥦 Produce / frozen (fiber, low waste)
+- [ ] Frozen mixed veg (×2–3 bags) — cheaper than fresh, zero waste
+- [ ] Frozen berries
+- [ ] Cabbage + carrots + onions — near-free fiber base for cooking
+- [ ] Garlic + ginger
+- [ ] Spinach
+- [ ] Bananas + apples — cheapest everyday fruit
+- [ ] Canned tomatoes (×4+) — base for chili / dal / shakshuka
 
-## 🧀 Dairy / other
-- [ ] Shredded mozzarella + a cheese you like
-- [ ] Feta or cotija
-- [ ] Milk or milk alternative (smoothies/oats)
+## 🌶️ Flavor (spend your novelty budget HERE, not on new meals)
+- [ ] Cumin, chili powder, paprika, curry spices
+- [ ] Soy sauce / hot sauce
 - [ ] Everything-bagel seasoning
+- [ ] Shredded cheese
+- [ ] Salsa
+
+> You love cooking, so flavor is where you get to play. Same cheap base ingredients +
+> different spices/sauces = endless variety with zero added cost or decisions.
 
 ---
 
 ## Grocery system rules (ADHD-proofing the shop)
 
-1. **Same day every week.** Pick one (e.g. Sunday). Put it on the calendar as a
-   recurring event. Consistency removes the "when do I shop?" decision.
-2. **Order online / pickup if the store is a focus-trap.** Reordering the same cart
-   weekly is the lowest-friction option that exists — strongly recommended for ADHD.
-   Most apps let you re-buy a previous order in one tap.
-3. **Never shop hungry or unmedicated** if you can help it — that's when the cart fills
-   with the exact junk this system replaces.
-4. **Two-tier buying:** the *crash shelf* items (shakes, bars, yogurt cups, pre-cooked
-   protein, fruit) are non-negotiable every single week. The rest flexes.
-5. **If you forget something, the system still works** — it's built on overlapping
-   staples, not fragile single-recipe ingredients. Don't let a missing item become a
-   reason to abandon the week.
+1. **Same day every week.** Pick one, put it on the calendar as recurring. Removes the
+   "when do I shop?" decision.
+2. **Buy dried beans/lentils, not canned, as the default** — roughly 1/3 the cost per
+   serving, and a pot of them is a cooking project you'll enjoy. Keep a few cans for the
+   floor-gear (depleted-day) convenience.
+3. **Cheap protein cuts + bulk carbs.** Thighs/whole chicken not breasts. Eggs and
+   legumes always. Big bags of oats and rice. Olive oil and peanut butter for calories.
+4. **Frozen veg over fresh** for cooking — cheaper, zero waste (nothing rots forgotten).
+   Fresh only for what you'll eat raw soon.
+5. **Unit-price, not sticker-price.** Compare $/lb or $/oz on the shelf tag. The big bag
+   almost always wins if you'll use it.
+6. **Order online / pickup if the store is a focus-trap.** Re-buying the same cart in one
+   tap is the lowest-friction option and stops impulse buys.
+7. **Never shop hungry or unmedicated** if you can help it — that's when the cart fills
+   with pricey impulse stuff.
+8. **The floor-shelf items are mandatory every week** (tuna, canned beans, eggs, peanut
+   butter, oats, a few shakes). The rest flexes. A missing item never breaks the system —
+   it's built on overlapping cheap staples, not fragile single recipes.
