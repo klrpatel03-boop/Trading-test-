@@ -19,10 +19,12 @@
   }
 
   function nextOccurrence(hhmm) {
-    var parts = (hhmm || "08:00").split(":");
+    // reject corrupted times (e.g. "25:90") so setHours can't wrap to a wrong day
+    if (!Anchor.util.isValidTime(hhmm)) hhmm = "08:00";
+    var parts = hhmm.split(":");
     var now = new Date();
     var target = new Date();
-    target.setHours(+parts[0] || 0, +parts[1] || 0, 0, 0);
+    target.setHours(+parts[0], +parts[1], 0, 0);
     if (target <= now) target.setDate(target.getDate() + 1);
     return target - now;
   }

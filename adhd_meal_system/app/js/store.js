@@ -7,8 +7,12 @@
   "use strict";
 
   var KEY = "anchor.state.v1";
+  var STATE_VERSION = 2;     // bump when a migration is added
+  var KEEP_DAYS = 400;       // cap unbounded date-keyed maps
+  var quotaWarned = false;   // only nag about full storage once
 
   var DEFAULTS = {
+    version: STATE_VERSION,
     profile: {
       name: "",
       weightLb: 160,
@@ -41,6 +45,8 @@
     waterGoal: 8,
     // meds: { "YYYY-MM-DD": { taken: bool, time: "HH:MM", ateFirst: bool } }
     meds: {},
+    // floor-shelf inventory — seeded lazily by views/pantry.js if null
+    pantry: null,
     // onboarding
     seenWelcome: false,
     streakSafe: true,
@@ -70,6 +76,60 @@
     return out;
   }
 
+  // Force the shape of known keys so a corrupted/edited blob can't crash later
+  // code that assumes arrays/objects (e.g. weights.push, Object.keys(pan.log)).
+  var ARRAY_KEYS = ["weights", "favorites", "kit", "garden", "pantry"];
+  var OBJECT_KEYS = ["profile", "pan", "grocery", "logs", "overrides", "water", "meds"];
+  function isObj(v) { return v && typeof v === "object" && !Array.isArray(v); }
+  function sanitizeTypes(s) {
+    ARRAY_KEYS.forEach(function (k) {
+      if (k === "kit" || k === "garden" || k === "pantry") return; // may be null, seeded later
+      if (!Array.isArray(s[k])) s[k] = [];
+    });
+    OBJECT_KEYS.forEach(function (k) { if (!isObj(s[k])) s[k] = clone(DEFAULTS[k]); });
+    if (!isObj(s.pan.log)) s.pan.log = {};
+    s.pan.cost = Anchor.util.safeNum(s.pan.cost, { min: 0, max: 100000, fallback: 250 });
+    s.pan.manual = Anchor.util.safeNum(s.pan.manual, { min: 0, fallback: 0, integer: true });
+    s.waterGoal = Anchor.util.safeNum(s.waterGoal, { min: 1, max: 16, fallback: 8, integer: true });
+    s.profile.weightLb = Anchor.util.safeNum(s.profile.weightLb, { min: 60, max: 1000, fallback: 160 });
+    if (Array.isArray(s.schedule)) {
+      s.schedule.forEach(function (row) {
+        if (row && !Anchor.util.isValidTime(row.time)) row.time = "08:00";
+      });
+    }
+    return s;
+  }
+
+  // Explicit schema migration (deepMerge fills new keys; this stamps the version
+  // and is where future structural migrations go).
+  function migrate(s) {
+    s.version = STATE_VERSION;
+    return s;
+  }
+
+  // Keep date-keyed maps from growing forever. pan.log entries fold into the
+  // running pan.manual total so total cooks are never lost on prune.
+  function dateKeyCutoff(keepDays) {
+    return Anchor.util.todayKey(Anchor.util.addDays(new Date(), -(keepDays || KEEP_DAYS)));
+  }
+  function pruneOldDates(s, keepDays) {
+    var cutoff = dateKeyCutoff(keepDays);
+    ["logs", "water", "meds", "overrides"].forEach(function (mapKey) {
+      var map = s[mapKey]; if (!isObj(map)) return;
+      Object.keys(map).forEach(function (k) { if (k < cutoff) delete map[k]; });
+    });
+    if (isObj(s.pan && s.pan.log)) {
+      Object.keys(s.pan.log).forEach(function (k) {
+        var datePart = k.split(":")[0];
+        if (datePart < cutoff) { s.pan.manual = (s.pan.manual || 0) + 1; delete s.pan.log[k]; }
+      });
+    }
+    if (Array.isArray(s.weights) && s.weights.length > 520) {
+      s.weights = s.weights.slice(-520); // ~10 years of weekly logs
+    }
+    return s;
+  }
+
   function load() {
     var raw;
     try {
@@ -79,25 +139,37 @@
     }
     var parsed = null;
     if (raw) {
-      try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+      try {
+        parsed = JSON.parse(raw);
+      } catch (e) {
+        parsed = null;
+        // don't silently wipe corrupted data — stash it so it's recoverable
+        try { localStorage.setItem(KEY + ".corrupt." + Date.now(), raw); } catch (e2) {}
+      }
     }
-    state = deepMerge(DEFAULTS, parsed || {});
-    if (!state.schedule) {
-      state.schedule = clone(Anchor.defaultSchedule);
-    }
+    if (!isObj(parsed)) parsed = {};
+    state = deepMerge(DEFAULTS, parsed);
+    state = migrate(state);
+    state = sanitizeTypes(state);
+    if (!state.schedule) state.schedule = clone(Anchor.defaultSchedule);
     if (!state.kit) state.kit = clone(Anchor.defaultKit || []);
     if (!state.garden) state.garden = clone(Anchor.defaultGarden || []);
-    if (!state.createdAt) {
-      state.createdAt = new Date().toISOString();
-    }
+    if (!state.createdAt) state.createdAt = new Date().toISOString();
+    pruneOldDates(state);
     return state;
   }
 
   function persist() {
+    pruneOldDates(state);
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
     } catch (e) {
-      /* storage might be full or blocked; fail silently */
+      // most likely QuotaExceededError — tell the user once instead of silently
+      // dropping their data.
+      if (!quotaWarned && Anchor.util && Anchor.util.toast) {
+        quotaWarned = true;
+        Anchor.util.toast("Storage full — export a backup in Settings");
+      }
     }
   }
 
@@ -247,7 +319,9 @@
       });
     },
     setWaterGoal: function (n) {
-      return store.update(function (s) { s.waterGoal = Math.max(1, n); });
+      return store.update(function (s) {
+        s.waterGoal = Anchor.util.safeNum(n, { min: 1, max: 16, fallback: 8, integer: true });
+      });
     },
 
     /* ---- medication log ---- */
@@ -265,6 +339,8 @@
     reset: function () {
       state = deepMerge(DEFAULTS, {});
       state.schedule = clone(Anchor.defaultSchedule);
+      state.kit = clone(Anchor.defaultKit || []);
+      state.garden = clone(Anchor.defaultGarden || []);
       state.createdAt = new Date().toISOString();
       persist();
       emit();
@@ -272,11 +348,25 @@
     exportJSON: function () {
       return JSON.stringify(store.get(), null, 2);
     },
+    // Throws on invalid input (caller shows a toast). A backup that's valid JSON
+    // but the wrong shape is merged onto DEFAULTS and type-sanitized so it can't
+    // crash the app later.
     importJSON: function (text) {
-      var parsed = JSON.parse(text);
-      state = deepMerge(DEFAULTS, parsed);
+      var parsed = JSON.parse(text); // throws on bad JSON -> caught by caller
+      if (!isObj(parsed)) throw new Error("Backup is not an Anchor state object");
+      state = sanitizeTypes(migrate(deepMerge(DEFAULTS, parsed)));
+      if (!state.schedule) state.schedule = clone(Anchor.defaultSchedule);
+      if (!state.kit) state.kit = clone(Anchor.defaultKit || []);
+      if (!state.garden) state.garden = clone(Anchor.defaultGarden || []);
+      pruneOldDates(state);
       persist();
       emit();
+    },
+
+    /* ---- internals exposed for tests ---- */
+    _internal: {
+      migrate: migrate, sanitizeTypes: sanitizeTypes, pruneOldDates: pruneOldDates,
+      deepMerge: deepMerge, DEFAULTS: DEFAULTS, KEY: KEY, STATE_VERSION: STATE_VERSION,
     },
   };
 

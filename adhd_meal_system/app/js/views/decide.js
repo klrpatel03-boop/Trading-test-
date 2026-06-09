@@ -15,6 +15,10 @@
     function spin() {
       var meal = Anchor.decide(opts);
       Anchor.util.clear(resultHost);
+      if (!meal) {
+        resultHost.appendChild(ui.empty("🤔", "No match", "Loosen a filter — try higher energy or 'Any' craving."));
+        return;
+      }
       resultHost.appendChild(buildResult(meal));
     }
 

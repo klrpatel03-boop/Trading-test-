@@ -14,6 +14,13 @@
 
   function render(root, params) {
     var batches = batchMeals();
+    if (!batches.length) {
+      Anchor.util.append(root, h("div.view.view-cookday", {}, [
+        ui.sectionHeader("Cook day", "The leftover loop is the whole system."),
+        ui.empty("🍲", "No batch recipes found", "Browse the Menu and favorite a few cook-gear meals."),
+      ]));
+      return;
+    }
     var current = (params && params.meal && Anchor.byId(params.meal)) || batches[0];
     var servings = current.servings;
 

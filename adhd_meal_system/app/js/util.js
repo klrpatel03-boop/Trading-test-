@@ -77,9 +77,18 @@
     var day = String(d.getDate()).padStart(2, "0");
     return d.getFullYear() + "-" + m + "-" + day;
   };
+  // Strict YYYY-MM-DD -> local-midnight Date. Returns null on malformed keys so
+  // callers can skip instead of getting a month-wrapped garbage date.
   util.keyToDate = function (key) {
-    var p = key.split("-");
-    return new Date(+p[0], +p[1] - 1, +p[2]);
+    if (typeof key !== "string") return null;
+    var m = key.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    var y = +m[1], mo = +m[2], d = +m[3];
+    if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+    var dt = new Date(y, mo - 1, d);
+    // reject overflow (e.g. 2026-02-31 -> Mar 3)
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+    return dt;
   };
   util.fmtDate = function (d) {
     return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
@@ -105,6 +114,40 @@
     return Math.round(n * f) / f;
   };
   util.clamp = function (n, lo, hi) { return Math.max(lo, Math.min(hi, n)); };
+
+  // The one numeric-input guard: coerce, reject NaN/Infinity, clamp, optional int.
+  // Single source of truth for every user-entered number (weight, water, cost…).
+  util.safeNum = function (value, opts) {
+    opts = opts || {};
+    var n = typeof value === "number" ? value : parseFloat(value);
+    if (!isFinite(n)) n = (opts.fallback != null ? opts.fallback : 0);
+    if (opts.min != null && n < opts.min) n = opts.min;
+    if (opts.max != null && n > opts.max) n = opts.max;
+    if (opts.integer) n = Math.round(n);
+    return n;
+  };
+
+  // Cap a string's length (bounds what we persist to localStorage).
+  util.capStr = function (s, max) {
+    s = (s == null ? "" : String(s));
+    return s.length > (max || 80) ? s.slice(0, max || 80) : s;
+  };
+
+  // weights[] -> [{x:ms, y:lb}] for charts/trend, dropping malformed entries.
+  util.weightPoints = function (weights) {
+    return (weights || []).map(function (w) {
+      var d = util.keyToDate(w && w.date);
+      var lb = util.safeNum(w && w.lb, { min: 1, max: 2000, fallback: NaN });
+      return d && isFinite(lb) ? { x: d.getTime(), y: lb } : null;
+    }).filter(Boolean);
+  };
+
+  // Valid "HH:MM" 24h time? Used to reject corrupted schedule times.
+  util.isValidTime = function (t) {
+    if (typeof t !== "string") return false;
+    var m = t.match(/^(\d{1,2}):(\d{2})$/);
+    return !!m && +m[1] >= 0 && +m[1] <= 23 && +m[2] >= 0 && +m[2] <= 59;
+  };
 
   /* ---- misc ---- */
   util.debounce = function (fn, ms) {

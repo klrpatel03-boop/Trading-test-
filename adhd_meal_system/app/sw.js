@@ -1,9 +1,11 @@
 /* ============================================================================
  * Anchor — sw.js (service worker)
  * Offline-first cache so the app works with no connection once installed.
- * Cache-first for app shell, network-fallback. Bump CACHE to invalidate.
+ * Cache-first for app shell, network-fallback. Bump CACHE_VERSION on each
+ * release so the activate step purges old caches and serves fresh assets.
  * ==========================================================================*/
-var CACHE = "anchor-v1";
+var CACHE_VERSION = "5";
+var CACHE = "anchor-v" + CACHE_VERSION;
 var ASSETS = [
   "index.html",
   "cheatsheet.html",
@@ -64,7 +66,12 @@ self.addEventListener("install", function (e) {
       // addAll fails the whole install if one asset 404s; add individually so
       // a single missing file (e.g. a png icon) doesn't break offline support.
       return Promise.all(ASSETS.map(function (url) {
-        return cache.add(url).catch(function () { return null; });
+        return cache.add(url).catch(function (err) {
+          // log instead of silently swallowing so a typo'd/missing asset in the
+          // ASSETS list is visible in DevTools rather than mysteriously offline-broken.
+          if (self.console) console.warn("[sw] failed to cache:", url, err && err.message);
+          return null;
+        });
       }));
     }).then(function () { return self.skipWaiting(); })
   );

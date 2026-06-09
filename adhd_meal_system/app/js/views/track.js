@@ -16,9 +16,7 @@
 
     /* ---- weight chart data ---- */
     var weights = state.weights.slice();
-    var chartData = weights.map(function (w) {
-      return { x: Anchor.util.keyToDate(w.date).getTime(), y: w.lb };
-    });
+    var chartData = Anchor.util.weightPoints(weights);
     var trend = Anchor.calc.weightTrend(weights);
 
     var chartHost = h("div.chart-host", {});
@@ -94,10 +92,11 @@
           h("button.btn.btn-primary.btn-sm", {
             onClick: function () {
               var v = parseFloat(weightInput.value);
-              if (!v) { Anchor.util.toast("Enter a weight first"); return; }
+              if (!isFinite(v) || v <= 0) { Anchor.util.toast("Enter a weight first"); return; }
+              if (v < 40 || v > 1000) { Anchor.util.toast("That doesn't look right — enter lb (40–1000)"); return; }
               Anchor.store.addWeight(v);
               weights = Anchor.store.get().weights.slice();
-              chartData = weights.map(function (w) { return { x: Anchor.util.keyToDate(w.date).getTime(), y: w.lb }; });
+              chartData = Anchor.util.weightPoints(weights);
               trend = Anchor.calc.weightTrend(weights);
               rebuildChart();
               Anchor.util.toast("Logged " + v + " lb");

@@ -13,7 +13,7 @@
 
     // weight
     var weights = state.weights.slice();
-    var chartData = weights.map(function (w) { return { x: Anchor.util.keyToDate(w.date).getTime(), y: w.lb }; });
+    var chartData = Anchor.util.weightPoints(weights);
     var trend = Anchor.calc.weightTrend(weights);
 
     // logged consistency (28d)

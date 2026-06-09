@@ -1,0 +1,25 @@
+name: Anchor tests
+
+on:
+  push:
+    paths:
+      - "adhd_meal_system/app/**"
+      - ".github/workflows/test.yml"
+  pull_request:
+    paths:
+      - "adhd_meal_system/app/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install jsdom (dev-only test dependency)
+        working-directory: adhd_meal_system/app
+        run: npm install jsdom --no-save
+      - name: Run test suite (unit + interaction + smoke)
+        working-directory: adhd_meal_system/app
+        run: node test/run.js

@@ -17,7 +17,9 @@
       ui.card([
         h("h3.detail-h", {}, "Profile"),
         field("Name (optional)", textInput(state.profile.name, function (v) { Anchor.store.setProfile({ name: v }); })),
-        field("Bodyweight (lb)", numInput(state.profile.weightLb, function (v) { Anchor.store.setProfile({ weightLb: v }); })),
+        field("Bodyweight (lb)", numInput(state.profile.weightLb, function (v) {
+          Anchor.store.setProfile({ weightLb: Anchor.util.safeNum(v, { min: 60, max: 1000, fallback: 160 }) });
+        })),
         field("Goal", ui.segmented([
           { value: "gain", label: "Gain" }, { value: "maintain", label: "Maintain" }, { value: "cut", label: "Cut" },
         ], state.profile.goal, function (v) { Anchor.store.setProfile({ goal: v }); Anchor.util.toast("Goal saved"); })),
@@ -62,11 +64,11 @@
         h("label.setting-label", {}, "Your pan (tracked to the dollar)"),
         h("div.pan-editor", {}, [
           h("input.input", { type: "text", value: (state.pan || {}).name || "", placeholder: "Pan name",
-            onChange: function (e) { Anchor.store.setPan({ name: e.target.value }); } }),
+            onChange: function (e) { Anchor.store.setPan({ name: Anchor.util.capStr(e.target.value, 80) }); } }),
           h("div.pan-edit-row", {}, [
             h("label.muted", {}, "Price $"),
             h("input.input.pan-price", { type: "number", value: (state.pan || {}).cost || 0,
-              onChange: function (e) { Anchor.store.setPan({ cost: +e.target.value || 0 }); Anchor.router.refresh(); } }),
+              onChange: function (e) { Anchor.store.setPan({ cost: Anchor.util.safeNum(e.target.value, { min: 0, max: 100000, fallback: 0 }) }); Anchor.router.refresh(); } }),
             h("span.muted", {}, Anchor.store.panUses() + " cooks · " + Anchor.util.money(Anchor.store.panStats().costPerUse) + "/use"),
           ]),
           h("button.linkbtn", { onClick: function () {
@@ -83,16 +85,16 @@
         h("div.kit-editor", {}, (state.kit || []).map(function (k, i) {
           return h("input.input", {
             type: "text", value: k.name,
-            onChange: function (e) { Anchor.store.update(function (s) { s.kit[i].name = e.target.value; }); },
+            onChange: function (e) { Anchor.store.update(function (s) { s.kit[i].name = Anchor.util.capStr(e.target.value, 80); }); },
           });
         })),
         h("label.setting-label", {}, "Garden"),
         h("div.garden-editor", {}, (state.garden || []).map(function (g, i) {
           return h("div.garden-edit-row", {}, [
             h("input.input.garden-crop", { type: "text", value: g.crop, placeholder: "Crop",
-              onChange: function (e) { Anchor.store.update(function (s) { s.garden[i].crop = e.target.value; }); } }),
+              onChange: function (e) { Anchor.store.update(function (s) { s.garden[i].crop = Anchor.util.capStr(e.target.value, 40); }); } }),
             h("input.input.garden-plants", { type: "number", value: g.plants || "", placeholder: "#",
-              onChange: function (e) { Anchor.store.update(function (s) { s.garden[i].plants = +e.target.value; }); } }),
+              onChange: function (e) { Anchor.store.update(function (s) { s.garden[i].plants = Anchor.util.safeNum(e.target.value, { min: 0, max: 999, fallback: 0, integer: true }); }); } }),
             ui.segmented([
               { value: "abundant", label: "Lots" }, { value: "trickle", label: "A little" },
             ], g.supply === "abundant" ? "abundant" : "trickle", function (v) {
@@ -113,7 +115,8 @@
       /* reminders */
       ui.card([
         h("h3.detail-h", {}, "Meal reminders"),
-        h("p.muted", {}, "Browser notifications at your scheduled times (keep the app open / installed). On iPhone, install to the Home Screen first — see below."),
+        h("p.muted", {}, "Browser notifications at your scheduled times. On iPhone, install to the Home Screen first — see below."),
+        h("p.muted", {}, "⚠️ Heads up: these only fire while the app is open in the background. iOS may not deliver them once the app is fully closed — treat them as a backup to your phone's own Clock alarms, not a replacement. (True background reminders need a native app.)"),
         ui.toggle("Enable reminder notifications", state.notificationsEnabled, function (v) {
           if (v) {
             Anchor.notify.enable(function (ok) {

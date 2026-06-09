@@ -23,7 +23,7 @@
     opts = opts || {};
     var size = opts.size || 120;
     var stroke = opts.stroke || 11;
-    var pct = Anchor.util.clamp(opts.value || 0, 0, 1.3);
+    var pct = Anchor.util.safeNum(opts.value, { min: 0, max: 1.3, fallback: 0 });
     var r = (size - stroke) / 2;
     var c = size / 2;
     var circ = 2 * Math.PI * r;

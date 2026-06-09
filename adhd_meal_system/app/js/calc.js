@@ -17,7 +17,8 @@
     /* Estimate maintenance + target calories/protein/fiber from the profile. */
     targets: function (profile) {
       profile = profile || {};
-      var wt = +profile.weightLb || 160;
+      // never let bad input produce NaN calories/protein
+      var wt = Anchor.util.safeNum(profile.weightLb, { min: 60, max: 1000, fallback: 160 });
       var mult = ACTIVITY[profile.activity] || ACTIVITY.moderate;
       var maintenance = Math.round(wt * mult);
 
@@ -99,8 +100,11 @@
     weightTrend: function (weights) {
       if (!weights || weights.length < 2) return null;
       var pts = weights.slice(-8).map(function (w) {
-        return { x: Anchor.util.keyToDate(w.date).getTime(), y: w.lb };
-      });
+        var d = Anchor.util.keyToDate(w.date);
+        var lb = Anchor.util.safeNum(w.lb, { min: 1, max: 2000, fallback: NaN });
+        return d && isFinite(lb) ? { x: d.getTime(), y: lb } : null;
+      }).filter(Boolean);
+      if (pts.length < 2) return null;
       var n = pts.length;
       var sx = 0, sy = 0, sxx = 0, sxy = 0;
       pts.forEach(function (p) {
