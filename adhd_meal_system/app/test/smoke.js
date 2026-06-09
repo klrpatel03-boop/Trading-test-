@@ -69,7 +69,7 @@ const order = [
   "js/data.js", "js/library.js", "js/cookbooks.js", "js/library2.js", "js/library3.js", "js/foods.js", "js/library4.js", "js/library5.js", "js/library6.js", "js/library7.js", "js/library8.js", "js/library9.js", "js/library10.js", "js/library_garden.js", "js/garden.js", "js/util.js", "js/store.js",
   "js/calc.js", "js/charts.js", "js/ui.js", "js/notify.js",
   "js/views/today.js", "js/views/decide.js", "js/views/plan.js", "js/views/prep.js", "js/views/menu.js", "js/views/plate.js",
-  "js/views/cookday.js", "js/views/garden.js", "js/views/cookbooks.js", "js/views/flavor.js", "js/views/groceries.js",
+  "js/views/cookday.js", "js/views/garden.js", "js/views/pan.js", "js/views/cookbooks.js", "js/views/flavor.js", "js/views/groceries.js",
   "js/views/budget.js", "js/views/calculator.js", "js/views/wellness.js", "js/views/track.js", "js/views/insights.js",
   "js/views/pantry.js", "js/views/learn.js", "js/views/help.js", "js/views/settings.js",
   "js/app.js",
@@ -187,6 +187,21 @@ try {
   if (!st.garden || !st.garden.some(g => /kale/i.test(g.crop))) throw new Error("garden not seeded with kale");
   ok("garden: kale recipes (" + kale.length + ") + 6-qt pan fit + seeded garden");
 } catch (e) { fail("garden personalization", e); }
+
+// pan cost-per-use tracker
+try {
+  const before = A.store.panStats();
+  A.store.addPanCook(2);
+  A.store.logPanCook("2026-06-09", "dinner", "chili", true);
+  const after = A.store.panStats();
+  if (after.uses !== before.uses + 3) throw new Error("pan uses miscounted: " + after.uses);
+  if (!(after.costPerUse < after.cost)) throw new Error("cost-per-use should drop below sticker");
+  // garden bias: kale should appear in the week's dinners
+  let kaleSeen = false;
+  for (let d = 0; d < 7; d++) { const m = A.pickForDay("dinner", 100 + d); if (A.usesKale(m)) kaleSeen = true; }
+  if (!kaleSeen) throw new Error("garden-biased rotation never surfaced kale");
+  ok("pan tracker counts cooks + drops cost/use; kale in the rotation");
+} catch (e) { fail("pan tracker / garden rotation", e); }
 
 // navigate via hash to each view through the router
 try {

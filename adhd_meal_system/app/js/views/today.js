@@ -105,6 +105,12 @@
               "aria-label": "Mark " + p.slot + " eaten",
               onClick: function () {
                 Anchor.store.toggleMealMark(dateKey, p.slot);
+                // a cooked meal = a use of the pan; log/unlog it to the tracker
+                if (p.meal.gear === "cook") {
+                  var nowOn = !checked;
+                  Anchor.store.logPanCook(dateKey, p.slot, p.meal.id, nowOn);
+                  if (nowOn) Anchor.util.toast("🍳 Pan cook #" + Anchor.store.panUses() + " — " + Anchor.util.money(Anchor.store.panStats().costPerUse) + "/use");
+                }
                 Anchor.router.refresh();
               },
             }, checked ? "✓" : ""),
@@ -184,6 +190,10 @@
           h("button.now-chip" + (med.taken ? ".on" : ""), {
             onClick: function () { Anchor.store.setMed({ taken: !med.taken }); Anchor.router.refresh(); },
           }, med.taken ? "💊 ✓" : "💊 meds"),
+          h("button.now-chip.now-pan", {
+            title: "Your pan's cost per use — tap for the tracker",
+            onClick: function () { Anchor.router.go("pan"); },
+          }, "🍳 " + Anchor.util.money(Anchor.store.panStats().costPerUse) + "/use"),
         ]),
       ]),
     ], { class: "now-card" });

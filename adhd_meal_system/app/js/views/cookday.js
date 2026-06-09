@@ -104,8 +104,14 @@
         ]),
 
         h("div.modal-actions", {}, [
-          h("button.btn.btn-ghost", { onClick: function () { Anchor.router.go("groceries"); } }, "Go to grocery list"),
-          h("button.btn.btn-ghost", { onClick: function () { Anchor.ui.openMeal(current); } }, "Full recipe card"),
+          h("button.btn.btn-primary", {
+            onClick: function () {
+              Anchor.store.addPanCook(1);
+              Anchor.util.toast("🍳 Cooked! Pan use #" + Anchor.store.panUses() + " — " + money(Anchor.store.panStats().costPerUse) + "/use");
+            },
+          }, "✓ I cooked this batch"),
+          h("button.btn.btn-ghost", { onClick: function () { Anchor.router.go("groceries"); } }, "Grocery list"),
+          h("button.btn.btn-ghost", { onClick: function () { Anchor.ui.openMeal(current); } }, "Recipe card"),
         ]),
       ]));
     }

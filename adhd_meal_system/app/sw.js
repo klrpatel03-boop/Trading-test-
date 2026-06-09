@@ -41,6 +41,7 @@ var ASSETS = [
   "js/views/plate.js",
   "js/views/cookday.js",
   "js/views/garden.js",
+  "js/views/pan.js",
   "js/views/cookbooks.js",
   "js/views/flavor.js",
   "js/views/groceries.js",

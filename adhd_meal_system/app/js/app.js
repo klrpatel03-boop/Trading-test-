@@ -19,6 +19,7 @@
   var MORE = [
     { id: "plan", label: "Week plan", icon: "📆" },
     { id: "prep", label: "Prep planner", icon: "🧑‍🍳" },
+    { id: "pan", label: "My pan", icon: "🍳" },
     { id: "cookbooks", label: "Recipes", icon: "📖" },
     { id: "flavor", label: "Flavor lab", icon: "🌶️" },
     { id: "garden", label: "From your garden", icon: "🥬" },
@@ -112,6 +113,7 @@
         h("span.brand-name", {}, "Anchor"),
       ]),
       h("div.topbar-actions", {}, [
+        h("button.icon-btn", { title: "My pan", onClick: function () { router.go("pan"); } }, "🍳"),
         h("button.icon-btn", { title: "Recipes", onClick: function () { router.go("cookbooks"); } }, "📖"),
         h("button.icon-btn", { title: "Help", onClick: function () { router.go("help"); } }, "❓"),
         h("button.icon-btn", { title: "Settings", onClick: function () { router.go("settings"); } }, "⚙️"),

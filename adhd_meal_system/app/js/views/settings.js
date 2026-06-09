@@ -58,7 +58,28 @@
       ui.card([
         h("h3.detail-h", {}, "Kitchen & garden"),
         h("p.muted", {}, "What you cook with and what you grow. Recipes that fit your pan get a 🍳 6-qt badge; recipes that use your greens get a 🥬."),
-        h("label.setting-label", {}, "Your main pan / kit"),
+
+        h("label.setting-label", {}, "Your pan (tracked to the dollar)"),
+        h("div.pan-editor", {}, [
+          h("input.input", { type: "text", value: (state.pan || {}).name || "", placeholder: "Pan name",
+            onChange: function (e) { Anchor.store.setPan({ name: e.target.value }); } }),
+          h("div.pan-edit-row", {}, [
+            h("label.muted", {}, "Price $"),
+            h("input.input.pan-price", { type: "number", value: (state.pan || {}).cost || 0,
+              onChange: function (e) { Anchor.store.setPan({ cost: +e.target.value || 0 }); Anchor.router.refresh(); } }),
+            h("span.muted", {}, Anchor.store.panUses() + " cooks · " + Anchor.util.money(Anchor.store.panStats().costPerUse) + "/use"),
+          ]),
+          h("button.linkbtn", { onClick: function () {
+            if (confirm("Reset the pan cook counter to 0?")) { Anchor.store.resetPanUses(); Anchor.router.refresh(); }
+          } }, "reset cook counter"),
+        ]),
+
+        ui.toggle("Bias my rotation toward garden kale + the pan", state.preferGarden, function (v) {
+          Anchor.store.update(function (s) { s.preferGarden = v; });
+          Anchor.util.toast(v ? "Kale baked into the rotation" : "Standard rotation");
+        }),
+
+        h("label.setting-label", {}, "Other kit"),
         h("div.kit-editor", {}, (state.kit || []).map(function (k, i) {
           return h("input.input", {
             type: "text", value: k.name,

@@ -780,14 +780,22 @@
   Anchor.byId = function (id) {
     return Anchor.meals.find(function (m) { return m.id === id; });
   };
-  // Deterministic "pick of the day" so it changes daily but never requires a choice.
+  // Deterministic "pick of the day" so it changes daily but never requires a
+  // choice. Dinners rotate through a 7-slot cycle keyed off dayIndex (so each
+  // day differs and the week plan varies). When the garden preference is on,
+  // designated slots are swapped for kale-forward 6-qt batch dinners.
   Anchor.pickForDay = function (cat, dayIndex) {
     if (cat === "dinner") {
-      var wd = new Date().getDay(); // 0=Sun..6=Sat -> map to weekday meals
-      var byWeekday = Anchor.meals.find(function (m) {
-        return m.category === "dinner" && m.weekday === ((wd + 6) % 7);
+      var slot = ((dayIndex % 7) + 7) % 7;
+      var prefer = Anchor.store && Anchor.store.get().preferGarden;
+      if (prefer && Anchor.gardenDinnerMap && Anchor.gardenDinnerMap[slot]) {
+        var km = Anchor.byId(Anchor.gardenDinnerMap[slot]);
+        if (km) return km;
+      }
+      var base = Anchor.meals.find(function (m) {
+        return m.category === "dinner" && m.weekday === slot;
       });
-      if (byWeekday) return byWeekday;
+      if (base) return base;
     }
     var list = Anchor.byCategory(cat);
     return list[dayIndex % list.length];

@@ -16,6 +16,10 @@
       activity: "moderate", // sedentary | light | moderate | active
       onStimulants: true,
     },
+    // bias the default rotation toward garden kale + the 6-qt pan
+    preferGarden: true,
+    // the one-and-only buy-it-for-life pan, tracked to the dollar
+    pan: { name: "All-Clad Essential 5-ply 6-qt", cost: 250, manual: 0, log: {} },
     schedule: null, // filled from Anchor.defaultSchedule on first load
     theme: "dark", // dark | light | auto
     notificationsEnabled: false,
@@ -201,6 +205,35 @@
       return store.update(function (s) {
         s.weights = s.weights.filter(function (w) { return w.date !== dateKey; });
       });
+    },
+
+    /* ---- the pan (cost-per-use, buy-it-for-life) ---- */
+    panUses: function () {
+      var p = store.get().pan || {};
+      return (p.manual || 0) + Object.keys(p.log || {}).length;
+    },
+    panStats: function () {
+      var p = store.get().pan || { cost: 250 };
+      var uses = store.panUses();
+      var cpu = uses > 0 ? p.cost / uses : p.cost;
+      return { name: p.name, cost: p.cost, uses: uses, costPerUse: cpu };
+    },
+    addPanCook: function (n) {
+      return store.update(function (s) { s.pan.manual = Math.max(0, (s.pan.manual || 0) + (n == null ? 1 : n)); });
+    },
+    // auto-log a cook from a Today cook-gear meal check (deduped by date:slot)
+    logPanCook: function (dateKey, slot, mealId, on) {
+      return store.update(function (s) {
+        var key = dateKey + ":" + slot;
+        if (on) s.pan.log[key] = mealId;
+        else delete s.pan.log[key];
+      });
+    },
+    setPan: function (patch) {
+      return store.update(function (s) { Object.assign(s.pan, patch); });
+    },
+    resetPanUses: function () {
+      return store.update(function (s) { s.pan.manual = 0; s.pan.log = {}; });
     },
 
     /* ---- hydration ---- */

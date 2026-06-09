@@ -495,3 +495,29 @@
 .garden-plants { width: 64px; flex-shrink: 0; }
 .kit-editor { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
 @media (min-width: 560px) { .garden-crops { grid-template-columns: 1fr 1fr; } .garden-tips { grid-template-columns: repeat(3,1fr); } }
+
+/* ============================ MY PAN ============================ */
+.now-pan { color: var(--warn); }
+.pan-hero { text-align: center; background: radial-gradient(120% 120% at 50% 0%, color-mix(in srgb,var(--warn) 14%,var(--surface)), var(--surface)); border: 1px solid color-mix(in srgb,var(--warn) 26%,var(--border)); border-radius: var(--radius-lg); padding: 22px 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.pan-cpu { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
+.pan-cpu-num { font-size: 3.2rem; font-weight: 880; letter-spacing: -0.04em; color: var(--warn); font-variant-numeric: tabular-nums; }
+.pan-cpu-unit { font-size: 1.1rem; color: var(--muted); font-weight: 650; }
+.pan-hero-sub { color: var(--text-2); font-weight: 600; margin-top: 2px; }
+.pan-hero-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 14px 0; }
+.pan-cook-btn { margin-top: 2px; }
+.pan-ladder { display: flex; flex-direction: column; }
+.pan-rung { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); opacity: .6; }
+.pan-rung:last-child { border-bottom: none; }
+.pan-rung.hit { opacity: 1; }
+.pan-rung-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border-strong); display: grid; place-items: center; font-weight: 800; font-size: .8rem; flex-shrink: 0; color: transparent; }
+.pan-rung.hit .pan-rung-dot { background: var(--good); border-color: var(--good); color: var(--good-ink); }
+.pan-rung-main { flex: 1; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.pan-rung-label { font-weight: 700; }
+.pan-rung-need { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pan-recipe-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.pan-recipe-chip { padding: 8px 12px; border-radius: var(--radius-pill); background: var(--surface-2); border: 1px solid var(--border); font-size: .82rem; font-weight: 600; }
+.pan-recipe-chip:hover { border-color: var(--warn); }
+.pan-philosophy { padding: 16px; background: color-mix(in srgb,var(--warn) 8%,var(--surface)); border: 1px solid color-mix(in srgb,var(--warn) 22%,var(--border)); border-radius: var(--radius); font-size: .9rem; line-height: 1.55; margin-bottom: 8px; }
+.pan-editor { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.pan-edit-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pan-price { width: 100px; }

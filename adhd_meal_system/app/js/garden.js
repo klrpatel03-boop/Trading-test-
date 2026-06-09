@@ -21,6 +21,11 @@
       note: "Only 1–2 leaves a week — too little to build a meal on. Use it as a fresh garnish: torn into an omelette, on top of a bowl, in a sandwich." },
   ];
 
+  /* Rotation slots (0–6) to swap for kale-forward 6-qt batch dinners when the
+   * garden preference is on — gives ~2 kale dinners/week without crowding out
+   * variety. Both are one-pot, batch, kale-heavy. */
+  Anchor.gardenDinnerMap = { 1: "kale-sausage-stew", 4: "kale-lentil-soup" };
+
   /* Does this recipe shine in a big 6-qt pan? (deep, high-volume, one-vessel) */
   Anchor.fitsBigPan = function (meal) {
     var t = meal.tags || [];
