@@ -66,11 +66,13 @@ def _criteria_from_request(args) -> dict:
             return default
 
     require_single = args.get("single_story", "1") not in ("0", "false", "False", "")
+    prefer_kitchen = args.get("big_kitchen", "0") not in ("0", "false", "False", "")
     return {
         "lot_min": _f("lot_min", config.LOT_MIN_ACRES),
         "lot_max": _f("lot_max", config.LOT_MAX_ACRES),
         "min_year": _i("min_year", config.MIN_YEAR_BUILT),
         "require_single_story": require_single,
+        "prefer_big_kitchen": prefer_kitchen,
     }
 
 

@@ -34,6 +34,14 @@ function ceilingCell(l) {
   return `<span class="badge ceiling-check">needs checking</span>`;
 }
 
+function kitchenCell(l) {
+  if (l.kitchen_status === "spacious") {
+    const note = l.kitchen_note ? `<span class="snippet">${escapeHtml(l.kitchen_note)}</span>` : "";
+    return `<span class="badge kitchen-ok">big kitchen</span>${note}`;
+  }
+  return `<span class="badge ceiling-check">needs checking</span>`;
+}
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -42,7 +50,7 @@ function escapeHtml(s) {
 function render() {
   const tbody = $("rows");
   if (!currentListings.length) {
-    tbody.innerHTML = `<tr><td class="empty" colspan="10">No matching homes. Try widening the filters or refreshing the data.</td></tr>`;
+    tbody.innerHTML = `<tr><td class="empty" colspan="11">No matching homes. Try widening the filters or refreshing the data.</td></tr>`;
     return;
   }
   const sorted = [...currentListings].sort((a, b) => {
@@ -70,6 +78,7 @@ function render() {
       <td>${l.beds ?? "—"}/${l.baths ?? "—"}</td>
       <td>${escapeHtml(l.property_type || "—")}</td>
       <td>${ceilingCell(l)}</td>
+      <td>${kitchenCell(l)}</td>
       <td>${link}</td>
     </tr>`;
   }).join("");
@@ -81,6 +90,7 @@ async function loadListings() {
     lot_max: $("lot_max").value,
     min_year: $("min_year").value,
     single_story: $("single_story").checked ? "1" : "0",
+    big_kitchen: $("big_kitchen").checked ? "1" : "0",
   });
   setStatus("Loading…");
   try {
@@ -136,7 +146,7 @@ $("csvfile").addEventListener("change", (e) => {
 });
 document.querySelectorAll("#results thead th").forEach((th, idx) => {
   const keys = ["manageability_score", "address", "price", "lot_size_acres",
-    "year_built", "sqft", null, "property_type", null, null];
+    "year_built", "sqft", null, "property_type", null, null, null];
   const key = keys[idx];
   if (!key) return;
   th.addEventListener("click", () => {

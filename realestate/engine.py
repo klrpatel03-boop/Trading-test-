@@ -93,12 +93,26 @@ def process(
     lot_max: float = config.LOT_MAX_ACRES,
     min_year: int = config.MIN_YEAR_BUILT,
     require_single_story: bool = True,
+    prefer_big_kitchen: bool = False,
 ) -> List[Listing]:
-    """Filter, score, and sort listings (best/most-manageable first)."""
+    """Filter, score, and sort listings (best/most-manageable first).
+
+    If `prefer_big_kitchen` is set, homes whose description signals a large/
+    gourmet kitchen are floated to the top, then ranked by manageability among
+    themselves.  Kitchen size is never used to *exclude* a home — only to
+    prioritize — because the data is so often missing.
+    """
     survivors = []
     for lst in listings:
         if passes_filters(lst, lot_min, lot_max, min_year, require_single_story):
             lst.manageability_score = score_manageability(lst)
             survivors.append(lst)
-    survivors.sort(key=lambda l: l.manageability_score, reverse=True)
+
+    if prefer_big_kitchen:
+        survivors.sort(
+            key=lambda l: (l.kitchen_status == "spacious", l.manageability_score),
+            reverse=True,
+        )
+    else:
+        survivors.sort(key=lambda l: l.manageability_score, reverse=True)
     return survivors

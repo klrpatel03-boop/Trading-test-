@@ -11,6 +11,7 @@ your family's criteria, ranked by how **easy to manage** they are.
 | **Age** | Built in the last 20 years (year built ≥ {`current year − 20`}) |
 | **Single-story** | Keeps confirmed ranches/single-level homes; *excludes* homes known to be multi-story. If the listing doesn't say, the home is **kept and flagged** "verify single-story" so you can check. |
 | **9 ft ceilings** | **Not** filtered (listings rarely state it). Each home shows a **"ceiling: needs checking"** badge, or surfaces the sentence if the description mentions ceilings. Confirm at the viewing. |
+| **Big kitchen** | Also **not** filtered (kitchen size isn't a data field). Detected from the description (gourmet/eat-in/large/island, etc.) and shown as a **"big kitchen"** badge. Tick **"Prefer big kitchen"** to float those homes to the top of the list. |
 | **Easy to manage** | A 0–100 **manageability score** (single-story + newer + smaller lot + right-sized house). Results are sorted best-first. |
 
 You can adjust the lot range, "built since" year, and the single-story toggle

@@ -27,6 +27,10 @@
         <input type="checkbox" id="single_story" checked>
         Single-story only
       </label>
+      <label class="checkbox">
+        <input type="checkbox" id="big_kitchen">
+        Prefer big kitchen
+      </label>
       <button id="apply">Apply filters</button>
     </div>
 
@@ -47,10 +51,10 @@
   <p id="status" class="status"></p>
 
   <p class="legend">
-    <span class="badge ceiling-check">ceiling: needs checking</span>
     <span class="badge ceiling-ok">ceiling mentioned</span>
+    <span class="badge kitchen-ok">big kitchen</span>
     <span class="badge verify">verify single-story</span>
-    Aim for {{ defaults.desired_ceiling_ft }} ft ceilings — confirm at viewing.
+    Aim for {{ defaults.desired_ceiling_ft }} ft ceilings + a big kitchen — confirm at viewing.
   </p>
 
   <table id="results">
@@ -65,6 +69,7 @@
         <th>Beds/Baths</th>
         <th>Type</th>
         <th>Ceilings</th>
+        <th>Kitchen</th>
         <th></th>
       </tr>
     </thead>

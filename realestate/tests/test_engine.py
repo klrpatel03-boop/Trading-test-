@@ -10,6 +10,7 @@ from realestate import config, engine
 from realestate.models import (
     Listing,
     extract_ceiling_note,
+    extract_kitchen_note,
     from_raw,
     infer_single_story,
     normalize_lot_to_acres,
@@ -62,6 +63,48 @@ class TestCeiling(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(extract_ceiling_note(None), (None, "needs_checking"))
+
+
+class TestKitchen(unittest.TestCase):
+    def test_gourmet(self):
+        note, status = extract_kitchen_note("Gourmet eat-in kitchen with an oversized island.")
+        self.assertEqual(status, "spacious")
+        self.assertIn("kitchen", note.lower())
+
+    def test_chefs_spacious(self):
+        _, status = extract_kitchen_note("Spacious chef's kitchen opens to the dining area.")
+        self.assertEqual(status, "spacious")
+
+    def test_island(self):
+        _, status = extract_kitchen_note("Updated kitchen with a large center island.")
+        self.assertEqual(status, "spacious")
+
+    def test_plain_kitchen_not_flagged_big(self):
+        # a mere "kitchen" mention without a size signal should not count as big
+        _, status = extract_kitchen_note("Updated kitchen and baths.")
+        self.assertEqual(status, "needs_checking")
+
+    def test_absent(self):
+        self.assertEqual(extract_kitchen_note("Lovely home near schools."),
+                         (None, "needs_checking"))
+
+
+class TestKitchenSort(unittest.TestCase):
+    def _mk(self, addr, score_year, kitchen):
+        l = Listing(listing_id=addr, source="t", address=addr,
+                    lot_size_acres=0.6, year_built=score_year, is_single_story=True)
+        l.kitchen_status = kitchen
+        return l
+
+    def test_prefer_big_kitchen_floats_to_top(self):
+        # a lower-scoring home with a big kitchen should outrank a higher-scoring
+        # home without one when prefer_big_kitchen is on
+        high_no_kitchen = self._mk("A", config.CURRENT_YEAR, "needs_checking")
+        low_big_kitchen = self._mk("B", config.MIN_YEAR_BUILT, "spacious")
+        out = engine.process([high_no_kitchen, low_big_kitchen], prefer_big_kitchen=True)
+        self.assertEqual(out[0].address, "B")
+        out2 = engine.process([high_no_kitchen, low_big_kitchen], prefer_big_kitchen=False)
+        self.assertEqual(out2[0].address, "A")
 
 
 class TestScoring(unittest.TestCase):

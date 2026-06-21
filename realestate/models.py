@@ -132,6 +132,44 @@ def extract_ceiling_note(description: Optional[str]):
     return None, "needs_checking"
 
 
+# Regex for "big kitchen" signals in free-text descriptions.  Kitchen size is
+# almost never a structured listing field, so (like ceilings) we detect it from
+# the description and surface it as a badge rather than filtering on it.
+_KITCHEN_RE = re.compile(
+    r"[^.]*\b("
+    r"(?:gourmet|chef'?s|eat[- ]?in|large|spacious|oversized|over-sized|big|huge|"
+    r"expansive|grand|generous|sprawling)\s+\w*\s*kitchen"  # "gourmet kitchen", "large eat-in kitchen"
+    r"|kitchen[^.]*\bisland"                                 # "kitchen with a center island"
+    r"|(?:large|oversized|huge|center|kitchen)\s+island"    # "oversized island"
+    r"|open[- ]concept\s+kitchen"
+    r"|kitchen[^.]*\b(?:spacious|oversized|huge|expansive))"
+    r"[^.]*\.?",
+    re.IGNORECASE,
+)
+
+
+def extract_kitchen_note(description: Optional[str]):
+    """Scan a description for "big kitchen" signals.
+
+    Returns (note, status):
+      - note:   the matching sentence/snippet, or None
+      - status: "spacious" if the text suggests a large/gourmet kitchen,
+                else "needs_checking"
+
+    Like ceiling height, kitchen size is never used to filter — it is surfaced so
+    the family can prioritize and verify it during a viewing.
+    """
+    if not description:
+        return None, "needs_checking"
+    match = _KITCHEN_RE.search(description)
+    if match:
+        snippet = " ".join(match.group(0).split()).strip()
+        if len(snippet) > 200:
+            snippet = snippet[:197] + "..."
+        return snippet, "spacious"
+    return None, "needs_checking"
+
+
 def _make_id(source: str, source_id, url: str, address: str) -> str:
     """Stable id for de-duping across refreshes."""
     if source_id:
@@ -163,6 +201,9 @@ class Listing:
     description: Optional[str] = None
     ceiling_note: Optional[str] = None
     ceiling_status: str = "needs_checking"
+    # big-kitchen handling (never a hard filter; same approach as ceilings)
+    kitchen_note: Optional[str] = None
+    kitchen_status: str = "needs_checking"
     # derived
     is_single_story: Optional[bool] = None
     single_story_flagged: bool = False
@@ -220,6 +261,7 @@ def from_raw(raw: dict, source: str) -> Listing:
     description = _lookup(raw_lower, _FIELD_ALIASES["description"])
     description = str(description) if description is not None else None
     ceiling_note, ceiling_status = extract_ceiling_note(description)
+    kitchen_note, kitchen_status = extract_kitchen_note(description)
 
     stories = _to_int(_lookup(raw_lower, _FIELD_ALIASES["stories"]))
     property_type = _lookup(raw_lower, _FIELD_ALIASES["property_type"])
@@ -245,6 +287,8 @@ def from_raw(raw: dict, source: str) -> Listing:
         description=description,
         ceiling_note=ceiling_note,
         ceiling_status=ceiling_status,
+        kitchen_note=kitchen_note,
+        kitchen_status=kitchen_status,
         is_single_story=is_single,
         single_story_flagged=flagged,
         latitude=_to_float(_lookup(raw_lower, _FIELD_ALIASES["latitude"])),
