@@ -1,0 +1,6 @@
+# Real estate scanner — kept separate from the trading app's requirements.txt
+flask>=3.0
+requests>=2.31
+# Optional: only needed if you later parse listing HTML detail pages for ceilings.
+# beautifulsoup4>=4.12
+# lxml>=5.0

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Family Home Finder — Boston &amp; NH</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <header>
+    <h1>🏡 Family Home Finder</h1>
+    <p class="subtitle">Greater Boston &amp; New Hampshire · single-story, low-maintenance homes</p>
+  </header>
+
+  <section class="controls">
+    <div class="filters">
+      <label>Lot min (acres)
+        <input type="number" id="lot_min" step="0.05" value="{{ defaults.lot_min }}">
+      </label>
+      <label>Lot max (acres)
+        <input type="number" id="lot_max" step="0.05" value="{{ defaults.lot_max }}">
+      </label>
+      <label>Built since
+        <input type="number" id="min_year" value="{{ defaults.min_year }}">
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" id="single_story" checked>
+        Single-story only
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" id="big_kitchen">
+        Prefer big kitchen
+      </label>
+      <button id="apply">Apply filters</button>
+    </div>
+
+    <div class="actions">
+      <select id="source">
+        <option value="csv">Sample / cached data</option>
+        <option value="redfin">Refresh from Redfin (live)</option>
+        <option value="rapidapi">Refresh from RapidAPI</option>
+      </select>
+      <button id="refresh">↻ Refresh data</button>
+      <label class="upload">
+        Import Redfin CSV
+        <input type="file" id="csvfile" accept=".csv" hidden>
+      </label>
+    </div>
+  </section>
+
+  <p id="status" class="status"></p>
+
+  <p class="legend">
+    <span class="badge ceiling-ok">ceiling mentioned</span>
+    <span class="badge kitchen-ok">big kitchen</span>
+    <span class="badge verify">verify single-story</span>
+    Aim for {{ defaults.desired_ceiling_ft }} ft ceilings + a big kitchen — confirm at viewing.
+  </p>
+
+  <table id="results">
+    <thead>
+      <tr>
+        <th>Score</th>
+        <th>Address</th>
+        <th>Price</th>
+        <th>Lot (ac)</th>
+        <th>Built</th>
+        <th>Sq ft</th>
+        <th>Beds/Baths</th>
+        <th>Type</th>
+        <th>Ceilings</th>
+        <th>Kitchen</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <script>
+    window.DEFAULTS = {{ defaults | tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

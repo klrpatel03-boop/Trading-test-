@@ -1,0 +1,11 @@
+PROPERTY TYPE,ADDRESS,CITY,STATE OR PROVINCE,ZIP OR POSTAL CODE,PRICE,BEDS,BATHS,SQUARE FEET,LOT SIZE,YEAR BUILT,DESCRIPTION,URL,LATITUDE,LONGITUDE
+Ranch,12 Maple Way,Needham,MA,02492,789000,3,2,1800,24000,2018,"Sun-filled open floor plan with 9 ft ceilings throughout the main level. Gourmet eat-in kitchen with an oversized island. Brand new roof.",https://www.redfin.com/MA/Needham/12-Maple-Way/home/1001,42.2809,-71.2478
+Single Family Residential,8 Birch Ln,Lexington,MA,02420,925000,4,3,2600,0.62,2010,"Lovingly maintained home in a quiet cul-de-sac. Updated kitchen and baths.",https://www.redfin.com/MA/Lexington/8-Birch-Ln/home/1002,42.4473,-71.2245
+Colonial,5 Oak St,Wellesley,MA,02481,1150000,4,3,3000,0.60,2015,"Classic colonial with formal dining and second-floor primary suite.",https://www.redfin.com/MA/Wellesley/5-Oak-St/home/1003,42.2968,-71.2924
+Ranch,44 Pine Rd,Framingham,MA,01701,540000,3,2,1600,0.55,1995,"Charming ranch on a level lot. Some updates needed.",https://www.redfin.com/MA/Framingham/44-Pine-Rd/home/1004,42.2793,-71.4162
+Ranch,2 Spruce Dr,Bedford,MA,01730,815000,3,2,2100,1.20,2020,"Newer construction ranch on over an acre of private land.",https://www.redfin.com/MA/Bedford/2-Spruce-Dr/home/1005,42.4906,-71.2761
+Ranch,17 Cedar Ct,Nashua,NH,03062,615000,3,2,2200,28000,2022,"Stunning new build with soaring vaulted ceilings and an open concept layout.",https://www.redfin.com/NH/Nashua/17-Cedar-Ct/home/1006,42.7180,-71.4865
+Ranch,9 Elm St,Bedford,NH,03110,699000,3,2,1500,0.50,2008,"Single-level living with nine foot ceilings and low-maintenance vinyl siding.",https://www.redfin.com/NH/Bedford/9-Elm-St/home/1007,42.9464,-71.5159
+Ranch,21 Willow Way,Concord,NH,03301,575000,3,2,1900,0.68,2006,"Well-kept ranch close to town. Spacious chef's kitchen opens to the dining area. Newer HVAC and windows.",https://www.redfin.com/NH/Concord/21-Willow-Way/home/1008,43.2081,-71.5376
+Townhouse,3 Harbor View,Boston,MA,02210,1350000,2,2,1400,0.05,2019,"Modern townhouse with three levels of living and rooftop deck.",https://www.redfin.com/MA/Boston/3-Harbor-View/home/1009,42.3490,-71.0466
+Single Family Residential,30 Meadow Ln,Hollis,NH,03049,720000,4,3,2700,0.70,2012,"Spacious home backing to conservation land. Hardwood floors throughout.",https://www.redfin.com/NH/Hollis/30-Meadow-Ln/home/1010,42.7445,-71.5912
