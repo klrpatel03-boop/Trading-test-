@@ -6,3 +6,7 @@ alerts.json
 alert_bot.log
 discovery_data.json
 optimization_results.json
+
+# real estate scanner
+realestate/data/cache.db
+realestate/**/__pycache__/
